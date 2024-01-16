@@ -15,3 +15,10 @@
 #include <chrono>
 #include <fstream>
 #include <memory>
+
+// finds the least significant bit in the uint64_t, gets rid of it, and returns its index
+inline int popLSB(uint64_t &bitboard) {
+    int lsb = std::countr_zero(bitboard);
+    bitboard &= bitboard - 1;
+    return lsb;
+}
