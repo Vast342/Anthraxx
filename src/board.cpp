@@ -1,6 +1,7 @@
 #include "global_includes.h"
 #include "board.h"
 #include "move.h"
+#include "lookups.h"
 
 void Board::makeMove(const Move move) {
     stateHistory.push_back(currentState);
@@ -54,8 +55,8 @@ void Board::flipTile(const int square) {
 
 void Board::flipNeighboringTiles(const int square) {
     assert(square < 49);
-    uint64_t neighbors = (bitboards[1 - currentState.sideToMove] & neighboringTiles[square]);
-    assert(((bitboards[X] & bitboards[O]) & neighbors) == neighbors);
+    uint64_t neighbors = (currentState.bitboards[1 - currentState.sideToMove] & neighboringTiles[square]);
+    assert(((currentState.bitboards[X] & currentState.bitboards[O]) & neighbors) == neighbors);
     
     while(neighbors != 0) {
         int index = popLSB(neighbors);
@@ -75,5 +76,5 @@ int Board::tileAtIndex(const int square) const {
 }
 
 int Board::evaluate() {
-    return __builtin_popcountll(bitboards[currentState.sideToMove]) - __builtin_popcountll(bitboards[1 - currentState.sideToMove])
+    return __builtin_popcountll(currentState.bitboards[currentState.sideToMove]) - __builtin_popcountll(currentState.bitboards[1 - currentState.sideToMove]);
 };
