@@ -7,10 +7,12 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 
 # all of the main typical files, used for all builds
 set(Common_SRC_Files 
-src/board.cpp)
+src/board.cpp
+src/move.cpp
+src/uai.cpp)
 
 # Build
-add_executable(Claritaxx_Native ${Common_SRC_Files} src/bmi2.cpp src/uci.cpp)
+add_executable(Claritaxx_Native ${Common_SRC_Files})
 
 target_compile_options(Claritaxx_Native PRIVATE -Wall -Wextra -Werror -Wpedantic -march=native -flto)
 
