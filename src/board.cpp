@@ -11,17 +11,18 @@ void Board::makeMove(Move move) {
     assert(startSquare < 49);
     assert(endSquare < 49);
     currentState.hundredPlyCounter++;
+    currentState.plyCount++;
     switch(flag) {
         case Single:
             currentState.hundredPlyCounter = 0;
-            addTile(endSquare);
-            flipNeighboringTiles(endSquare);
             break;
         case Double:
             removeTile(startSquare);
-            addTile(endSquare);
             break;
     }
+    addTile(endSquare);
+    flipNeighboringTiles(endSquare);
+    currentState.sideToMove = 1 - currentState.sideToMove;
 }
 
 void Board::undoMove() {
