@@ -19,14 +19,14 @@ constexpr uint64_t expand(const int square) {
     const uint64_t allButRightMask = ~getFileMask(6);
     const uint64_t allButTopMask = ~getRankMask(6);
     const uint64_t allButBottomMask = ~getRankMask(0); 
-    return squareAsBitboard << 1 & allButRightMask
-         & squareAsBitboard >> 1 & allButLeftMask
-         & squareAsBitboard << 7 & allButBottomMask
-         & squareAsBitboard >> 7 & allButTopMask
-         & squareAsBitboard << 6 & (allButBottomMask & allButRightMask)
-         & squareAsBitboard >> 6 & (allButTopMask & allButLeftMask)
-         & squareAsBitboard << 8 & (allButBottomMask & allButLeftMask)
-         & squareAsBitboard >> 8 & (allButTopMask & allButRightMask);
+    return (squareAsBitboard << 1) & allButRightMask
+         | (squareAsBitboard >> 1) & allButLeftMask
+         | (squareAsBitboard << 7) & allButBottomMask
+         | (squareAsBitboard >> 7) & allButTopMask
+         | (squareAsBitboard << 6) & (allButBottomMask & allButRightMask)
+         | (squareAsBitboard >> 6) & (allButTopMask & allButLeftMask)
+         | (squareAsBitboard << 8) & (allButBottomMask & allButLeftMask)
+         | (squareAsBitboard >> 8) & (allButTopMask & allButRightMask);
 }
 
 constexpr std::array<uint64_t, 49> generateExpanded() {
