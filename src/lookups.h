@@ -16,17 +16,17 @@ constexpr uint64_t getRankMask(const int rank) {
 constexpr uint64_t expand(const int square) {
     const uint64_t squareAsBitboard = 1ULL << square;
     const uint64_t allButLeftMask = ~getFileMask(0);
-    const uint64_t allButRightMask = ~getFileMask(6);
+    const uint64_t allButRightMask = ~getFileMask(6); 
     const uint64_t allButTopMask = ~getRankMask(6);
     const uint64_t allButBottomMask = ~getRankMask(0); 
-    return ((squareAsBitboard << 1) & allButRightMask)
-         | ((squareAsBitboard >> 1) & allButLeftMask)
+    return (((squareAsBitboard << 1) & allButLeftMask)
+         | ((squareAsBitboard >> 1) & allButRightMask)
          | ((squareAsBitboard << 7) & allButBottomMask)
          | ((squareAsBitboard >> 7) & allButTopMask)
          | ((squareAsBitboard << 6) & (allButBottomMask & allButRightMask))
          | ((squareAsBitboard >> 6) & (allButTopMask & allButLeftMask))
          | ((squareAsBitboard << 8) & (allButBottomMask & allButLeftMask))
-         | ((squareAsBitboard >> 8) & (allButTopMask & allButRightMask));
+         | ((squareAsBitboard >> 8) & (allButTopMask & allButRightMask))) & 0b1111111111111111111111111111111111111111111111111;
 }
 
 constexpr std::array<uint64_t, 49> generateExpanded() {
