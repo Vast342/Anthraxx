@@ -3,7 +3,7 @@
 #include "move.h"
 
 enum Bitboards {
-    X, O, Occupied, Empty
+    X, O
 };
 
 enum Colors {
@@ -11,8 +11,8 @@ enum Colors {
 };
 
 struct BoardState {
-    // x, o, occupied, empty
-    std::array<uint64_t, 4> bitboards;
+    // x, o
+    std::array<uint64_t, 2> bitboards;
     uint8_t sideToMove;
     uint16_t plyCount;
     uint8_t hundredPlyCounter; 
