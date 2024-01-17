@@ -2,6 +2,8 @@
 
 #include "global_includes.h"
 #include "lookups.h"
+#include "move.h"
+#include "board.h"
 
 inline void runMaskTests() {
     std::cout << "testing masks: " << std::endl;
@@ -29,4 +31,27 @@ inline void runMaskTests() {
     std::cout << "2 away tile test 4: PASSED" << std::endl;
     std::cout << "2 away tile tests: PASSED" << std::endl;
     std::cout << "All Tests Passed" << std::endl;
+}
+
+inline int perft(Board board, int depth) {
+    std::array<Move, 194> moves;
+    int numMoves = board.getMoves(moves);
+    // YIPPY bulk counting
+    if(depth == 1) return numMoves;
+    int result = 0;
+    for(int i = 0; i < numMoves; i++) {
+        board.makeMove(moves[i]);
+        result += perft(board, depth-1);
+        board.undoMove();
+    }
+    return result;
+}
+
+inline void runPerftTest(Board board, int depth) {
+    clock_t start = clock();
+    int result = perft(board, depth);
+    clock_t end = clock();
+    std::cout << "Result: " << std::to_string(result) << '\n';
+    std::cout << "Time: " << std::to_string((end-start)/static_cast<double>(1000)) << '\n';
+    std::cout << "NPS: " << std::to_string(result / ((end-start)/static_cast<double>(1000))) << '\n';
 }

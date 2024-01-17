@@ -80,13 +80,19 @@ void interpretCommand(std::string command) {
         identify();
     } else if(bits[0] == "go") {
         go(bits);
+    } else if(bits[0] == "perft") {
+        runPerftTest(board, std::stoi(bits[1]));    
+    } else if(bits[0] == "splitperft") {
+        std::cout << "no split perft yet" << std::endl;
+    } else if(bits[0] == "makemove") {
+        board.makeMove(Move(bits[1]));
     } else {
         std::cout << "invalid or unsupported command\n";
     }
 }
 
 int main() {
-    runMaskTests();
+    //runMaskTests();
     std::cout << std::boolalpha;
     std::string command;
     while(true) {
