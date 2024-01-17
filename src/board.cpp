@@ -26,6 +26,20 @@ void Board::makeMove(const Move move) {
     currentState.sideToMove = 1 - currentState.sideToMove;
 }
 
+/*int Board::getMoves(std::array<Move, 194> &moves) {
+    uint64_t stmPieces = currentState.bitboards[currentState.sideToMove];
+    const uint64_t occupiedBitboard = ~(currentState.bitboards[X] & currentState.bitboards[O]);
+    int totalMoves = 0;
+    while(stmPieces != 0) {
+        int index = popLSB(stmPieces);
+    }
+    return totalMoves;
+}*/
+
+//Board::Board(std::string fen) {
+    
+//}
+
 void Board::undoMove() {
     currentState = stateHistory.back();
     stateHistory.pop_back();
