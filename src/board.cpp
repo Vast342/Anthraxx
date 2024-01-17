@@ -55,9 +55,41 @@ int Board::getMoves(std::array<Move, 194> &moves) {
 }
 
 // fens have x and o for pieces, and the starting position is x5o/7/7/7/7/7/o5x x 0 1
-//Board::Board(std::string fen) {
-    
-//}
+Board::Board(std::string fen) {
+    stateHistory.clear();
+    stateHistory.reserve(256);
+    for(int i = 0; i < 2; i++) {
+        currentState.bitboards[i] = 0ULL;
+    }
+    // main board state, segment 1
+    std::vector<std::string> segments = split(fen, ' ');
+    std::vector<std::string> ranks = split(segments[0], '/');
+    std::ranges::reverse(ranks);
+    int i = 0;
+    for(const auto& rank : ranks) {
+        for(char c : rank) {
+            switch(c) {
+                case 'x':
+                    addTile(i, X);
+                    i++;
+                    break;
+                case 'o':
+                    addTile(i, O);
+                    i++;
+                    break;
+                default:
+                    i += (c - '0');
+                    break;
+            }
+        }
+    }
+    // convert color to move into 0 or 1, segment 2
+    currentState.sideToMove = (segments[1] == "x" ? 1 : 0);
+    // 50 move counter, segment 3
+    currentState.hundredPlyCounter = 0;
+    // ply count, segment 4
+    currentState.plyCount = std::stoi(segments[3]) * 2 - currentState.sideToMove;
+}
 
 void Board::undoMove() {
     currentState = stateHistory.back();
