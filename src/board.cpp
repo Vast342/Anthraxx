@@ -70,11 +70,11 @@ Board::Board(std::string fen) {
         for(char c : rank) {
             switch(c) {
                 case 'x':
-                    addTile(i, X);
+                    initializeTile(i, X);
                     i++;
                     break;
                 case 'o':
-                    addTile(i, O);
+                    initializeTile(i, O);
                     i++;
                     break;
                 default:
@@ -84,7 +84,7 @@ Board::Board(std::string fen) {
         }
     }
     // convert color to move into 0 or 1, segment 2
-    currentState.sideToMove = (segments[1] == "x" ? 1 : 0);
+    currentState.sideToMove = (segments[1] == "o" ? 1 : 0);
     // 50 move counter, segment 3
     currentState.hundredPlyCounter = 0;
     // ply count, segment 4
@@ -101,6 +101,13 @@ void Board::addTile(const int square) {
     assert(tileAtIndex(square) == None);
     const uint64_t squareAsBitboard = 1ULL << square;
     currentState.bitboards[currentState.sideToMove] ^= squareAsBitboard;
+}
+
+void Board::initializeTile(const int square, const int color) {
+    assert(square < 49);
+    assert(tileAtIndex(square) == None);
+    const uint64_t squareAsBitboard = 1ULL << square;
+    currentState.bitboards[color] ^= squareAsBitboard;
 }
 
 void Board::removeTile(const int square) {
@@ -121,7 +128,7 @@ void Board::flipTile(const int square) {
 void Board::flipNeighboringTiles(const int square) {
     assert(square < 49);
     uint64_t neighbors = (currentState.bitboards[1 - currentState.sideToMove] & neighboringTiles[square]);
-    assert(((currentState.bitboards[X] & currentState.bitboards[O]) & neighbors) == neighbors);
+    assert(((currentState.bitboards[X] & currentState.bitboards[O]) & neighbors) == 0);
     
     while(neighbors != 0) {
         int index = popLSB(neighbors);
@@ -143,3 +150,7 @@ int Board::tileAtIndex(const int square) const {
 int Board::evaluate() {
     return __builtin_popcountll(currentState.bitboards[currentState.sideToMove]) - __builtin_popcountll(currentState.bitboards[1 - currentState.sideToMove]);
 };
+
+int Board::getColorToMove() const {
+    return currentState.sideToMove;
+}

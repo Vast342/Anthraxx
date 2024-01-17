@@ -25,10 +25,12 @@ struct Board {
         void makeMove(const Move move);
         void undoMove();
         int evaluate();
+        int getColorToMove() const;
     private:
         BoardState currentState;
         std::vector<BoardState> stateHistory;
         void addTile(const int square);
+        void initializeTile(const int square, const int color);
         void removeTile(const int square);
         void flipTile(const int square);
         void flipNeighboringTiles(const int square);

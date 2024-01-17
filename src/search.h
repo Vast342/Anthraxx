@@ -4,4 +4,4 @@
 #include "move.h"
 #include "board.h"
 
-Move think(int softTimeLimit, int hardTimeLimit);
+Move think(Board board, int softTimeLimit, int hardTimeLimit);

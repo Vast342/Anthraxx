@@ -9,8 +9,7 @@ int softBoundFractionDenominator = 4;
 double softBoundMultiplier = 0.6;
 int defaultMovesToGo = 20;
 
-Board board("8/8/8/8/8/8/8/8 w - - 0 1");
-Engine engine;
+Board board("x5o/7/7/7/7/7/o5x x 0 1");
 
 int rootColorToMove;
 
@@ -19,12 +18,12 @@ void loadPosition(const std::vector<std::string>& bits) {
     if(bits[1] == "startpos") {
         board = Board("x5o/7/7/7/7/7/o5x x 0 1");
         for(int i = 3; i < static_cast<int>(bits.size()); i++) {
-            board.makeMove(Move(bits[i], board));
+            board.makeMove(Move(bits[i]));
         }
     } else if(bits[1] == "fen") {
         board = Board(bits[2] + " " + bits[3] + " " + bits[4] + " " + bits[5]);
         for(int i = 6; i < static_cast<int>(bits.size()); i++) {
-            board.makeMove(Move(bits[i], board));
+            board.makeMove(Move(bits[i]));
         }
     } else {
         std::cout << "invalid position command\n";
@@ -42,7 +41,6 @@ void identify() {
 // tells the engine to search
 void go(std::vector<std::string> bits) {
     int time = 0;
-    int depth = 0;
     int inc = 0;
     int movestogo = defaultMovesToGo;
     for(int i = 1; i < std::ssize(bits); i+=2) {
@@ -64,7 +62,7 @@ void go(std::vector<std::string> bits) {
     // the formulas here are former formulas from Stormphrax, so this means that they are adapted to Chess timing, and may not be the best for Ataxx
     const int softBound = softBoundMultiplier * (time / movestogo + inc * softBoundFractionNumerator / softBoundFractionDenominator);
     const int hardBound = time / hardBoundDivisor;
-    bestMove = think(board, softBound, hardBound, true);
+    bestMove = think(board, softBound, hardBound);
     std::cout << "bestmove " << bestMove.toLongAlgebraic() << '\n';
 }
 
@@ -87,7 +85,7 @@ void interpretCommand(std::string command) {
     }
 }
 
-int main(int argc, char* argv[]) {
+int main() {
     runMaskTests();
     std::cout << std::boolalpha;
     std::string command;
