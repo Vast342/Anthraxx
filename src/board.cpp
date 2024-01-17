@@ -26,16 +26,29 @@ void Board::makeMove(const Move move) {
     currentState.sideToMove = 1 - currentState.sideToMove;
 }
 
-/*int Board::getMoves(std::array<Move, 194> &moves) {
+int Board::getMoves(std::array<Move, 194> &moves) {
     uint64_t stmPieces = currentState.bitboards[currentState.sideToMove];
-    const uint64_t occupiedBitboard = ~(currentState.bitboards[X] & currentState.bitboards[O]);
+    const uint64_t emptyBitboard = ~(currentState.bitboards[X] | currentState.bitboards[O]);
     int totalMoves = 0;
     while(stmPieces != 0) {
-        int index = popLSB(stmPieces);
+        const int index = popLSB(stmPieces);
+        uint64_t neighbors = neighboringTiles[index] & emptyBitboard;
+        uint64_t twoAways = nextDoorTiles[index] & emptyBitboard;
+        while(neighbors != 0) {
+            const int moveEndSquare = popLSB(neighbors);
+            moves[totalMoves] = Move(index, moveEndSquare, Single);
+            totalMoves++;   
+        }
+        while(twoAways != 0) {
+            const int moveEndSquare = popLSB(twoAways);
+            moves[totalMoves] = Move(index, moveEndSquare, Single);
+            totalMoves++;   
+        }
     }
     return totalMoves;
-}*/
+}
 
+// fens have x and o for pieces, and the starting position is x5o/7/7/7/7/7/o5x x 0 1
 //Board::Board(std::string fen) {
     
 //}
