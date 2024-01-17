@@ -14,7 +14,7 @@ Engine engine;
 
 int rootColorToMove;
 
-// loads a position, either startpos, kiwipete(not part of uci but IO just felt like I should), or from a fen string
+// loads a position, either startpos or a fen string
 void loadPosition(const std::vector<std::string>& bits) {
     if(bits[1] == "startpos") {
         board = Board("x5o/7/7/7/7/7/o5x x 0 1");
@@ -32,14 +32,14 @@ void loadPosition(const std::vector<std::string>& bits) {
     rootColorToMove = board.getColorToMove();
 }
 
-// has the engine identify itself when the GUI says uci
+// has the engine identify itself when the GUI says uai
 void identify() {
     std::cout << "id name Claritaxx V0.1.0\n";
     std::cout << "id author Vast\n";
     std::cout << "uaiok\n";
 }
 
-// tells the engine to search, with support for a few different types
+// tells the engine to search
 void go(std::vector<std::string> bits) {
     int time = 0;
     int depth = 0;
@@ -61,7 +61,7 @@ void go(std::vector<std::string> bits) {
     }
     Move bestMove;
     // go wtime x btime x
-    // the formulas here are former formulas from Stormphrax
+    // the formulas here are former formulas from Stormphrax, so this means that they are adapted to Chess timing, and may not be the best for Ataxx
     const int softBound = softBoundMultiplier * (time / movestogo + inc * softBoundFractionNumerator / softBoundFractionDenominator);
     const int hardBound = time / hardBoundDivisor;
     bestMove = think(board, softBound, hardBound, true);
@@ -88,6 +88,7 @@ void interpretCommand(std::string command) {
 }
 
 int main(int argc, char* argv[]) {
+    runMaskTests();
     std::cout << std::boolalpha;
     std::string command;
     while(true) {
