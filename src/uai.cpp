@@ -71,7 +71,7 @@ void go(std::vector<std::string> bits) {
     const int softBound = softBoundMultiplier * (time / movestogo + inc * softBoundFractionNumerator / softBoundFractionDenominator);
     const int hardBound = time / hardBoundDivisor;
     bestMove = think(board, softBound, hardBound, true);
-    std::cout << "bestmove " << toLongAlgebraic(bestMove) << '\n';
+    std::cout << "bestmove " << bestMove.toLongAlgebraic() << '\n';
 }
 
 // interprets the command
