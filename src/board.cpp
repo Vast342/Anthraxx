@@ -8,7 +8,7 @@ void Board::makeMove(const Move move) {
     int startSquare = move.getStartSquare();
     int endSquare = move.getEndSquare();
     int flag = move.getFlag();
-    assert(flag < 2);
+    assert(flag < 3);
     assert(startSquare < 49);
     assert(endSquare < 49);
     currentState.hundredPlyCounter++;
@@ -16,13 +16,15 @@ void Board::makeMove(const Move move) {
     switch(flag) {
         case Single:
             currentState.hundredPlyCounter = 0;
+            addTile(endSquare);
+            flipNeighboringTiles(endSquare);
             break;
         case Double:
             removeTile(startSquare);
+            addTile(endSquare);
+            flipNeighboringTiles(endSquare);
             break;
     }
-    addTile(endSquare);
-    flipNeighboringTiles(endSquare);
     currentState.sideToMove = 1 - currentState.sideToMove;
 }
 
@@ -44,6 +46,10 @@ int Board::getMoves(std::array<Move, 194> &moves) {
             moves[totalMoves] = Move(index, moveEndSquare, Single);
             totalMoves++;   
         }
+    }
+    if(totalMoves == 0) {
+         moves[totalMoves] = Move(0,0,Passing);
+         totalMoves++;
     }
     return totalMoves;
 }
