@@ -2,7 +2,7 @@
 #include "global_includes.h"
 
 enum MoveTypes {
-    Single, Double
+    Single, Double, Passing
 };
 
 struct Move {
