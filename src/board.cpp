@@ -43,13 +43,13 @@ int Board::getMoves(std::array<Move, 194> &moves) {
         }
         while(twoAways != 0) {
             const int moveEndSquare = popLSB(twoAways);
-            moves[totalMoves] = Move(index, moveEndSquare, Single);
+            moves[totalMoves] = Move(index, moveEndSquare, Double);
             totalMoves++;   
         }
     }
     if(totalMoves == 0) {
-         moves[totalMoves] = Move(0,0,Passing);
-         totalMoves++;
+        moves[totalMoves] = Move(0,0,Passing);
+        totalMoves++;
     }
     return totalMoves;
 }
