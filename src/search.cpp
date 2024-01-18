@@ -53,7 +53,7 @@ int negamax(Board &board, int alpha, int beta, int depth, int ply) {
 }
 
 void outputInfo(int score, int depth, int elapsedTime) {
-    std::string scoreString = " score ";
+    std::string scoreString = " score cp ";
     scoreString += std::to_string(score);
     std::cout << "info depth " << std::to_string(depth) << " nodes " << std::to_string(nodes) << " time " << std::to_string(elapsedTime) << " nps " << std::to_string(int(double(nodes) / (elapsedTime == 0 ? 1 : elapsedTime) * 1000)) << scoreString << " pv " << rootBestMove.toLongAlgebraic() << std::endl;
 }
