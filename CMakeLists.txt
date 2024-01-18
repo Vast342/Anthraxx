@@ -9,6 +9,7 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 set(Common_SRC_Files 
 src/board.cpp
 src/move.cpp
+src/search.cpp
 src/uai.cpp)
 
 # Build
