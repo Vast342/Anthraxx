@@ -33,9 +33,9 @@ inline void runMaskTests() {
     std::cout << "All Tests Passed" << std::endl;
 }
 
-inline int perft(Board board, int depth) {
+inline int perft(Board &board, const int depth) {
     std::array<Move, 194> moves;
-    int numMoves = board.getMoves(moves);
+    const int numMoves = board.getMoves(moves);
     // YIPPY bulk counting
     if(depth == 1) return numMoves;
     int result = 0;
@@ -47,9 +47,9 @@ inline int perft(Board board, int depth) {
     return result;
 }
 
-inline void runPerftTest(Board board, int depth) {
+inline void runPerftTest(Board board, const int depth) {
     clock_t start = clock();
-    int result = perft(board, depth);
+    const int result = perft(board, depth);
     clock_t end = clock();
     std::cout << "Result: " << std::to_string(result) << '\n';
     std::cout << "Time: " << std::to_string((end-start)/static_cast<double>(1000)) << '\n';

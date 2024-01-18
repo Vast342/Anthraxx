@@ -39,7 +39,7 @@ void identify() {
 }
 
 // tells the engine to search
-void go(std::vector<std::string> bits) {
+void go(const std::vector<std::string> &bits) {
     int time = 0;
     int inc = 0;
     int movestogo = defaultMovesToGo;
@@ -67,8 +67,8 @@ void go(std::vector<std::string> bits) {
 }
 
 // interprets the command
-void interpretCommand(std::string command) {
-    std::vector<std::string> bits = split(command, ' ');
+void interpretCommand(const std::string command) {
+    const std::vector<std::string> bits = split(command, ' ');
 
     if(bits.empty()) {
         return;
@@ -100,7 +100,7 @@ int main() {
         if(command == "quit") {
             return 0;
         }
-            interpretCommand(command);
+        interpretCommand(command);
     }
     return 0;
-};
+}

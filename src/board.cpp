@@ -5,9 +5,9 @@
 
 void Board::makeMove(const Move move) {
     stateHistory.push_back(currentState);
-    int startSquare = move.getStartSquare();
-    int endSquare = move.getEndSquare();
-    int flag = move.getFlag();
+    const int startSquare = move.getStartSquare();
+    const int endSquare = move.getEndSquare();
+    const int flag = move.getFlag();
     assert(flag < 3);
     assert(startSquare < 49);
     assert(endSquare < 49);
@@ -62,7 +62,7 @@ Board::Board(std::string fen) {
         currentState.bitboards[i] = 0ULL;
     }
     // main board state, segment 1
-    std::vector<std::string> segments = split(fen, ' ');
+    const std::vector<std::string> segments = split(fen, ' ');
     std::vector<std::string> ranks = split(segments[0], '/');
     std::ranges::reverse(ranks);
     int i = 0;
