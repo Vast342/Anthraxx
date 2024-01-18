@@ -65,7 +65,7 @@ Move think(Board board, const int softTimeLimit, const int hardTimeLimit) {
 
     begin = std::chrono::steady_clock::now();
 
-    for(int i = 0; i < 100; i++) {
+    for(int i = 1; i < 100; i++) {
         const Move previousBest = rootBestMove;
 
         const int score = negamax(board, -10000000, 10000000, i, 0);
@@ -78,5 +78,5 @@ Move think(Board board, const int softTimeLimit, const int hardTimeLimit) {
         if(elapsedTime > softTimeLimit) break;
     }
     
-    return Move(0, 0, 0);
+    return rootBestMove;
 }

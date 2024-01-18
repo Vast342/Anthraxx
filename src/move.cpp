@@ -38,6 +38,5 @@ Move::Move(std::string longAlgebraic) {
 }
 
 std::string Move::toLongAlgebraic() {
-    
     return "hehe";
 }
