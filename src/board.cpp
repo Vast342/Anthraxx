@@ -119,7 +119,7 @@ void Board::removeTile(const int square) {
 
 void Board::flipTile(const int square) {
     assert(square < 49);
-    assert(tileAtIndex(square) != None);
+    assert(tileAtIndex(square) != currentState.sideToMove);
     const uint64_t squareAsBitboard = 1ULL << square;
     currentState.bitboards[currentState.sideToMove] ^= squareAsBitboard;
     currentState.bitboards[1 - currentState.sideToMove] ^= squareAsBitboard;
@@ -128,7 +128,6 @@ void Board::flipTile(const int square) {
 void Board::flipNeighboringTiles(const int square) {
     assert(square < 49);
     uint64_t neighbors = (currentState.bitboards[1 - currentState.sideToMove] & neighboringTiles[square]);
-    assert(((currentState.bitboards[X] & currentState.bitboards[O]) & neighbors) == 0);
     
     while(neighbors != 0) {
         int index = popLSB(neighbors);
