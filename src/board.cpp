@@ -175,5 +175,40 @@ void Board::toString() {
 }
 
 std::string Board::getFen() {
-    return "hehe";
+    // code originally from the c# version of clarity, then c++ version of clarity, and now here!
+    std::string fen = "";
+    for(int rank = 6; rank >= 0; rank--) {
+        int numEmptyFiles = 0;
+        for(int file = 0; file < 7; file++) {
+            int piece = tileAtIndex(7*rank+file);
+            if(piece != 2) {
+                if(numEmptyFiles != 0) {
+                    fen += std::to_string(numEmptyFiles);
+                    numEmptyFiles = 0;
+                }
+                fen += piece == X ? "x" : "o";
+            }
+            else {
+                numEmptyFiles++;
+            }
+
+        }
+        if(numEmptyFiles != 0) {
+            fen += std::to_string(numEmptyFiles);
+        }
+        if(rank != 0) {
+            fen += '/';
+        }
+    }
+
+    // color to move
+    fen += ' ';
+    fen += (currentState.sideToMove == 0 ? 'x' : 'o');
+    // 50 move counter
+    fen += ' ';
+    fen += std::to_string(currentState.hundredPlyCounter / 2);
+    // ply count
+    fen += ' ';
+    fen += std::to_string(currentState.plyCount / 2 + currentState.sideToMove);
+    return fen;
 }
