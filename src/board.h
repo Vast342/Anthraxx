@@ -22,6 +22,7 @@ struct Board {
     public:
         Board(const std::string fen);
         int getMoves(std::array<Move, 194> &moves);
+        int getMoveCount();
         void makeMove(const Move move);
         void undoMove();
         int evaluate();

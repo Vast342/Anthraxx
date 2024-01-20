@@ -54,6 +54,20 @@ int Board::getMoves(std::array<Move, 194> &moves) {
     return totalMoves;
 }
 
+int Board::getMoveCount() {
+    uint64_t stmPieces = currentState.bitboards[currentState.sideToMove];
+    const uint64_t emptyBitboard = ~(currentState.bitboards[X] | currentState.bitboards[O]);
+    uint64_t singleMoves = expandBitboard(stmPieces) & emptyBitboard;
+    int totalMoves = 0;
+    totalMoves += __builtin_popcountll(singleMoves);
+    while(stmPieces != 0) {
+        const int index = popLSB(stmPieces);
+        uint64_t twoAways = nextDoorTiles[index] & emptyBitboard;
+        totalMoves += __builtin_popcountll(twoAways);
+    }
+    return totalMoves;
+}
+
 // fens have x and o for pieces, and the starting position is x5o/7/7/7/7/7/o5x x 0 1
 Board::Board(std::string fen) {
     stateHistory.clear();

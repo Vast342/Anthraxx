@@ -34,10 +34,10 @@ inline void runMaskTests() {
 }
 
 inline uint64_t perft(Board &board, const int depth) {
+    // YIPPY bulk counting
+    if(depth == 1) return board.getMoveCount();
     std::array<Move, 194> moves;
     const int numMoves = board.getMoves(moves);
-    // YIPPY bulk counting
-    if(depth == 1) return numMoves;
     uint64_t result = 0;
     for(int i = 0; i < numMoves; i++) {
         board.makeMove(moves[i]);
