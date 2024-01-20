@@ -26,13 +26,13 @@ Move::Move(std::string longAlgebraic) {
     if(longAlgebraic.length() == 2) {
         flag = Single;
         endSquare += longAlgebraic[0] - 'a';
-        endSquare += (longAlgebraic[1] - '1') * 8;
+        endSquare += (longAlgebraic[1] - '1') * 7;
     } else if(longAlgebraic.length() == 4) {
         flag = Double;
         startSquare += longAlgebraic[0] - 'a';
-        startSquare += (longAlgebraic[1] - '1') * 8;
+        startSquare += (longAlgebraic[1] - '1') * 7;
         endSquare += longAlgebraic[2] - 'a';
-        endSquare += (longAlgebraic[3] - '1') * 8;
+        endSquare += (longAlgebraic[3] - '1') * 7;
     }
     value = startSquare + (endSquare << 6) + (flag << 12);
 }

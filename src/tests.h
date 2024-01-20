@@ -63,7 +63,7 @@ inline void runSplitPerft(Board board, const int depth) {
     uint64_t result = 0;
     for(int i = 0; i < numMoves; i++) {
         board.makeMove(moves[i]);
-        const int currentResult = perft(board, depth - 1);
+        const int currentResult = (depth - 1 == 0 ? 0 : perft(board, depth - 1));
         result += currentResult;
         std::cout << moves[i].toLongAlgebraic() << ": " << currentResult << std::endl;
         board.undoMove();

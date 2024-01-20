@@ -31,16 +31,16 @@ void Board::makeMove(const Move move) {
 int Board::getMoves(std::array<Move, 194> &moves) {
     uint64_t stmPieces = currentState.bitboards[currentState.sideToMove];
     const uint64_t emptyBitboard = ~(currentState.bitboards[X] | currentState.bitboards[O]);
+    uint64_t singleMoves = expandBitboard(stmPieces) & emptyBitboard;
     int totalMoves = 0;
+    while(singleMoves != 0) {
+        const int index = popLSB(singleMoves);
+        moves[totalMoves] = Move(0, index, Single);
+        totalMoves++;   
+    }
     while(stmPieces != 0) {
         const int index = popLSB(stmPieces);
-        uint64_t neighbors = neighboringTiles[index] & emptyBitboard;
         uint64_t twoAways = nextDoorTiles[index] & emptyBitboard;
-        while(neighbors != 0) {
-            const int moveEndSquare = popLSB(neighbors);
-            moves[totalMoves] = Move(index, moveEndSquare, Single);
-            totalMoves++;   
-        }
         while(twoAways != 0) {
             const int moveEndSquare = popLSB(twoAways);
             moves[totalMoves] = Move(index, moveEndSquare, Double);
@@ -49,7 +49,7 @@ int Board::getMoves(std::array<Move, 194> &moves) {
     }
     if(totalMoves == 0) {
         moves[totalMoves] = Move(0,0,Passing);
-        totalMoves++;
+        //totalMoves++;
     }
     return totalMoves;
 }

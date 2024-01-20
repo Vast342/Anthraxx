@@ -28,6 +28,20 @@ constexpr uint64_t expand(const int square) {
          | ((squareAsBitboard << 8) & (allButBottomMask & allButLeftMask))
          | ((squareAsBitboard >> 8) & (allButTopMask & allButRightMask))) & 0b1111111111111111111111111111111111111111111111111;
 }
+constexpr uint64_t expandBitboard(const uint64_t bitboard) {
+    const uint64_t allButLeftMask = ~getFileMask(0);
+    const uint64_t allButRightMask = ~getFileMask(6); 
+    const uint64_t allButTopMask = ~getRankMask(6);
+    const uint64_t allButBottomMask = ~getRankMask(0); 
+    return (((bitboard << 1) & allButLeftMask)
+         | ((bitboard >> 1) & allButRightMask)
+         | ((bitboard << 7) & allButBottomMask)
+         | ((bitboard >> 7) & allButTopMask)
+         | ((bitboard << 6) & (allButBottomMask & allButRightMask))
+         | ((bitboard >> 6) & (allButTopMask & allButLeftMask))
+         | ((bitboard << 8) & (allButBottomMask & allButLeftMask))
+         | ((bitboard >> 8) & (allButTopMask & allButRightMask))) & 0b1111111111111111111111111111111111111111111111111;
+}
 
 constexpr std::array<uint64_t, 49> generateExpanded() {
     std::array<uint64_t, 49> neighborMasks;
