@@ -33,12 +33,12 @@ inline void runMaskTests() {
     std::cout << "All Tests Passed" << std::endl;
 }
 
-inline int perft(Board &board, const int depth) {
+inline uint64_t perft(Board &board, const int depth) {
     std::array<Move, 194> moves;
     const int numMoves = board.getMoves(moves);
     // YIPPY bulk counting
     if(depth == 1) return numMoves;
-    int result = 0;
+    uint64_t result = 0;
     for(int i = 0; i < numMoves; i++) {
         board.makeMove(moves[i]);
         result += perft(board, depth-1);
@@ -49,7 +49,25 @@ inline int perft(Board &board, const int depth) {
 
 inline void runPerftTest(Board board, const int depth) {
     clock_t start = clock();
-    const int result = perft(board, depth);
+    const uint64_t result = perft(board, depth);
+    clock_t end = clock();
+    std::cout << "Result: " << std::to_string(result) << '\n';
+    std::cout << "Time: " << std::to_string((end-start)/static_cast<double>(1000)) << '\n';
+    std::cout << "NPS: " << std::to_string(result / ((end-start)/static_cast<double>(1000))) << '\n';
+}
+
+inline void runSplitPerft(Board board, const int depth) {
+    clock_t start = clock();
+    std::array<Move, 194> moves;
+    const int numMoves = board.getMoves(moves);
+    uint64_t result = 0;
+    for(int i = 0; i < numMoves; i++) {
+        board.makeMove(moves[i]);
+        const int currentResult = perft(board, depth - 1);
+        result += currentResult;
+        std::cout << moves[i].toLongAlgebraic() << ": " << currentResult << std::endl;
+        board.undoMove();
+    }
     clock_t end = clock();
     std::cout << "Result: " << std::to_string(result) << '\n';
     std::cout << "Time: " << std::to_string((end-start)/static_cast<double>(1000)) << '\n';

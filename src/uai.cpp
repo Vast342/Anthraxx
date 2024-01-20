@@ -11,8 +11,6 @@ int defaultMovesToGo = 20;
 
 Board board("x5o/7/7/7/7/7/o5x x 0 1");
 
-int rootColorToMove;
-
 // loads a position, either startpos or a fen string
 void loadPosition(const std::vector<std::string>& bits) {
     if(bits[1] == "startpos") {
@@ -28,7 +26,6 @@ void loadPosition(const std::vector<std::string>& bits) {
     } else {
         std::cout << "invalid position command\n";
     }
-    rootColorToMove = board.getColorToMove();
 }
 
 // has the engine identify itself when the GUI says uai
@@ -83,9 +80,15 @@ void interpretCommand(const std::string command) {
     } else if(bits[0] == "perft") {
         runPerftTest(board, std::stoi(bits[1]));    
     } else if(bits[0] == "splitperft") {
-        std::cout << "no split perft yet" << std::endl;
+        runSplitPerft(board, std::stoi(bits[1]));
     } else if(bits[0] == "makemove") {
         board.makeMove(Move(bits[1]));
+    } else if(bits[0] == "uainewgame") {
+        // I just added this so it wouldn't say it doesn't support uainewgame, it'll do something eventually  
+    } else if(bits[0] == "printstate") {
+        board.toString();
+    } else if(bits[0] == "getfen") {
+        std::cout << board.getFen() << std::endl;  
     } else {
         std::cout << "invalid or unsupported command\n";
     }

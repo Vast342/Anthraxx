@@ -26,6 +26,8 @@ struct Board {
         void undoMove();
         int evaluate();
         int getColorToMove() const;
+        void toString();
+        std::string getFen();
     private:
         BoardState currentState;
         std::vector<BoardState> stateHistory;

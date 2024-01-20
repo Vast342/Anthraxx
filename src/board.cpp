@@ -129,10 +129,8 @@ void Board::flipNeighboringTiles(const int square) {
     assert(square < 49);
     uint64_t neighbors = (currentState.bitboards[1 - currentState.sideToMove] & neighboringTiles[square]);
     
-    while(neighbors != 0) {
-        int index = popLSB(neighbors);
-        flipTile(index);
-    }
+    currentState.bitboards[currentState.sideToMove] ^= neighbors;
+    currentState.bitboards[1 - currentState.sideToMove] ^= neighbors;
 }
 
 int Board::tileAtIndex(const int square) const {
@@ -152,4 +150,30 @@ int Board::evaluate() {
 
 int Board::getColorToMove() const {
     return currentState.sideToMove;
+}
+
+void Board::toString() {
+    for(int rank = 6; rank >= 0; rank--) {
+        for(int file = 0; file < 7; file++) {
+            const int tile = tileAtIndex(rank * 7 + file);
+            char pieceChar = ' ';
+            switch(tile) {
+                case X:
+                    pieceChar = 'x';
+                    break;
+                case O:
+                    pieceChar = 'o';
+                    break;
+            }
+            std::cout << pieceChar << " ";
+        }
+        std::cout << '\n';
+    }
+    std::cout << "Ply count: " << std::to_string(currentState.plyCount) << '\n';
+    std::cout << "Color to move: " << (currentState.sideToMove == 1 ? "O" : "X") << '\n';
+    std::cout << "Evaluation: " << std::to_string(evaluate()) << '\n';
+}
+
+std::string Board::getFen() {
+    return "hehe";
 }
