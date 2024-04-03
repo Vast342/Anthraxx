@@ -36,6 +36,7 @@ inline void runMaskTests() {
 inline uint64_t perft(Board &board, const int depth) {
     // YIPPY bulk counting
     if(depth == 1) return board.getMoveCount();
+    if(depth <= 0) return 1;
     std::array<Move, 194> moves;
     const int numMoves = board.getMoves(moves);
     uint64_t result = 0;
@@ -56,6 +57,45 @@ inline void runPerftTest(Board board, const int depth) {
     std::cout << "NPS: " << std::to_string(result / ((end-start)/static_cast<double>(1000))) << '\n';
 }
 
+const std::pair<std::string, std::vector<int>> positions[] = {
+    {"7/7/7/7/7/7/7 x 0 1", {1, 0, 0, 0, 0}},
+    {"7/7/7/7/7/7/7 o 0 1", {1, 0, 0, 0, 0}},
+    {"x5o/7/7/7/7/7/o5x x 0 1", {1, 16, 256, 6460, 155888, 4752668}},
+    {"x5o/7/7/7/7/7/o5x o 0 1", {1, 16, 256, 6460, 155888, 4752668}},
+    {"x5o/7/2-1-2/7/2-1-2/7/o5x x 0 1", {1, 14, 196, 4184, 86528, 2266352}},
+    {"x5o/7/2-1-2/7/2-1-2/7/o5x o 0 1", {1, 14, 196, 4184, 86528, 2266352}},
+    {"x5o/7/2-1-2/3-3/2-1-2/7/o5x x 0 1", {1, 14, 196, 4100, 83104, 2114588}},
+    {"x5o/7/2-1-2/3-3/2-1-2/7/o5x o 0 1", {1, 14, 196, 4100, 83104, 2114588}},
+    {"x5o/7/3-3/2-1-2/3-3/7/o5x x 0 1", {1, 16, 256, 5948, 133264, 3639856}},
+    {"x5o/7/3-3/2-1-2/3-3/7/o5x o 0 1", {1, 16, 256, 5948, 133264, 3639856}},
+    {"7/7/7/7/ooooooo/ooooooo/xxxxxxx x 0 1", {1, 1, 75, 249, 14270, 452980}},
+    {"7/7/7/7/ooooooo/ooooooo/xxxxxxx o 0 1", {1, 75, 249, 14270, 452980}},
+    {"7/7/7/7/xxxxxxx/xxxxxxx/ooooooo x 0 1", {1, 75, 249, 14270, 452980}},
+    {"7/7/7/7/xxxxxxx/xxxxxxx/ooooooo o 0 1", {1, 1, 75, 249, 14270, 452980}},
+    {"7/7/7/2x1o2/7/7/7 x 0 1", {1, 23, 419, 7887, 168317, 4266992}},
+    {"7/7/7/2x1o2/7/7/7 o 0 1", {1, 23, 419, 7887, 168317, 4266992}},
+    {"x5o/7/7/7/7/7/o5x x 100 1", {1, 0, 0, 0, 0}},
+    {"x5o/7/7/7/7/7/o5x o 100 1", {1, 0, 0, 0, 0}},
+    {"7/7/7/7/-------/-------/x5o x 0 1", {1, 2, 4, 13, 30, 73, 174}},
+    {"7/7/7/7/-------/-------/x5o o 0 1", {1, 2, 4, 13, 30, 73, 174}},
+};
+
+inline void runPerftSuite() {
+    int j = 0;
+    for (const auto& [fen, nodes] : positions) {
+        Board board(fen);
+        for (unsigned int i = 0; i < nodes.size(); ++i) {
+            j++;
+            int result = perft(board, i);
+            if(result == nodes[i]) {
+                std::cout << "Passed test number " << j << std::endl;
+            } else {
+                std::cout << "Failed test number " << j << " with fen " << fen << " and output " << result << ", expected result was " << nodes[i] << std::endl;
+            }
+        }
+    }
+}
+
 inline void runSplitPerft(Board board, const int depth) {
     clock_t start = clock();
     std::array<Move, 194> moves;
@@ -63,7 +103,7 @@ inline void runSplitPerft(Board board, const int depth) {
     uint64_t result = 0;
     for(int i = 0; i < numMoves; i++) {
         board.makeMove(moves[i]);
-        const int currentResult = (depth - 1 == 0 ? 0 : perft(board, depth - 1));
+        const int currentResult = perft(board, depth - 1);
         result += currentResult;
         std::cout << moves[i].toLongAlgebraic() << ": " << currentResult << std::endl;
         board.undoMove();

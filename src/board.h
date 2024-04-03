@@ -3,16 +3,16 @@
 #include "move.h"
 
 enum Bitboards {
-    X, O
+    X, O, Blocked
 };
 
 enum Colors {
-    Black, White, None
+    Black, White, Block, None
 };
 
 struct BoardState {
     // x, o
-    std::array<uint64_t, 2> bitboards;
+    std::array<uint64_t, 3> bitboards;
     uint8_t sideToMove;
     uint16_t plyCount;
     uint8_t hundredPlyCounter; 
@@ -35,6 +35,7 @@ struct Board {
         void addTile(const int square);
         void initializeTile(const int square, const int color);
         void removeTile(const int square);
+        void blockTile(const int tile);
         void flipTile(const int square);
         void flipNeighboringTiles(const int square);
         int tileAtIndex(const int square) const;

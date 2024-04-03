@@ -30,7 +30,7 @@ void loadPosition(const std::vector<std::string>& bits) {
 
 // has the engine identify itself when the GUI says uai
 void identify() {
-    std::cout << "id name Claritaxx V0.1.0\n";
+    std::cout << "id name Claritaxx V0.1.1\n";
     std::cout << "id author Vast\n";
     std::cout << "uaiok\n";
 }
@@ -89,13 +89,14 @@ void interpretCommand(const std::string command) {
         board.toString();
     } else if(bits[0] == "getfen") {
         std::cout << board.getFen() << std::endl;  
+    } else if(bits[0] == "perftsuite") {
+        runPerftSuite();  
     } else {
         std::cout << "invalid or unsupported command\n";
     }
 }
 
 int main() {
-    //runMaskTests();
     std::cout << std::boolalpha;
     std::string command;
     while(true) {

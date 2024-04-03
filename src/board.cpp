@@ -29,50 +29,63 @@ void Board::makeMove(const Move move) {
 }
 
 int Board::getMoves(std::array<Move, 194> &moves) {
-    uint64_t stmPieces = currentState.bitboards[currentState.sideToMove];
-    const uint64_t emptyBitboard = ~(currentState.bitboards[X] | currentState.bitboards[O]);
-    uint64_t singleMoves = expandBitboard(stmPieces) & emptyBitboard;
-    int totalMoves = 0;
-    while(singleMoves != 0) {
-        const int index = popLSB(singleMoves);
-        moves[totalMoves] = Move(0, index, Single);
-        totalMoves++;   
-    }
-    while(stmPieces != 0) {
-        const int index = popLSB(stmPieces);
-        uint64_t twoAways = nextDoorTiles[index] & emptyBitboard;
-        while(twoAways != 0) {
-            const int moveEndSquare = popLSB(twoAways);
-            moves[totalMoves] = Move(index, moveEndSquare, Double);
+    if(currentState.hundredPlyCounter < 100) {
+        uint64_t stmPieces = currentState.bitboards[currentState.sideToMove];
+        const uint64_t emptyBitboard = ~(currentState.bitboards[X] | currentState.bitboards[O]);
+        uint64_t singleMoves = expandBitboard(stmPieces) & emptyBitboard;
+        singleMoves ^= (currentState.bitboards[Blocked] & singleMoves);
+        int totalMoves = 0;
+        while(singleMoves != 0) {
+            const int index = popLSB(singleMoves);
+            moves[totalMoves] = Move(0, index, Single);
             totalMoves++;   
         }
+        while(stmPieces != 0) {
+            const int index = popLSB(stmPieces);
+            uint64_t twoAways = nextDoorTiles[index] & emptyBitboard;
+            twoAways ^= (currentState.bitboards[Blocked] & twoAways);
+            while(twoAways != 0) {
+                const int moveEndSquare = popLSB(twoAways);
+                moves[totalMoves] = Move(index, moveEndSquare, Double);
+                totalMoves++;   
+            }
+        }
+        if(totalMoves == 0 && __builtin_popcountll(currentState.bitboards[currentState.sideToMove]) != 0) {
+            moves[totalMoves] = Move(0,0,Passing);
+            totalMoves++;
+        }
+        return totalMoves;
     }
-    if(totalMoves == 0) {
-        moves[totalMoves] = Move(0,0,Passing);
-        //totalMoves++;
-    }
-    return totalMoves;
+    return 0;
 }
 
 int Board::getMoveCount() {
-    uint64_t stmPieces = currentState.bitboards[currentState.sideToMove];
-    const uint64_t emptyBitboard = ~(currentState.bitboards[X] | currentState.bitboards[O]);
-    uint64_t singleMoves = expandBitboard(stmPieces) & emptyBitboard;
-    int totalMoves = 0;
-    totalMoves += __builtin_popcountll(singleMoves);
-    while(stmPieces != 0) {
-        const int index = popLSB(stmPieces);
-        uint64_t twoAways = nextDoorTiles[index] & emptyBitboard;
-        totalMoves += __builtin_popcountll(twoAways);
+    if(currentState.hundredPlyCounter < 100) {
+        uint64_t stmPieces = currentState.bitboards[currentState.sideToMove];
+        const uint64_t emptyBitboard = ~(currentState.bitboards[X] | currentState.bitboards[O]);
+        uint64_t singleMoves = expandBitboard(stmPieces) & emptyBitboard;
+        singleMoves ^= (currentState.bitboards[Blocked] & singleMoves);
+        int totalMoves = 0;
+        totalMoves += __builtin_popcountll(singleMoves);
+        while(stmPieces != 0) {
+            const int index = popLSB(stmPieces);
+            uint64_t twoAways = nextDoorTiles[index] & emptyBitboard;
+            twoAways ^= (currentState.bitboards[Blocked] & twoAways);
+            totalMoves += __builtin_popcountll(twoAways);
+        }
+        if(totalMoves == 0 && __builtin_popcountll(currentState.bitboards[currentState.sideToMove]) != 0) {
+            totalMoves++;
+        }
+        return totalMoves;
     }
-    return totalMoves;
+    return 0;
 }
 
 // fens have x and o for pieces, and the starting position is x5o/7/7/7/7/7/o5x x 0 1
 Board::Board(std::string fen) {
     stateHistory.clear();
     stateHistory.reserve(256);
-    for(int i = 0; i < 2; i++) {
+    for(int i = 0; i < 3; i++) {
         currentState.bitboards[i] = 0ULL;
     }
     // main board state, segment 1
@@ -91,6 +104,10 @@ Board::Board(std::string fen) {
                     initializeTile(i, O);
                     i++;
                     break;
+                case '-':
+                    blockTile(i);
+                    i++;
+                    break;
                 default:
                     i += (c - '0');
                     break;
@@ -100,7 +117,7 @@ Board::Board(std::string fen) {
     // convert color to move into 0 or 1, segment 2
     currentState.sideToMove = (segments[1] == "o" ? 1 : 0);
     // 50 move counter, segment 3
-    currentState.hundredPlyCounter = 0;
+    currentState.hundredPlyCounter = std::stoi(segments[2]);
     // ply count, segment 4
     currentState.plyCount = std::stoi(segments[3]) * 2 - currentState.sideToMove;
 }
@@ -131,6 +148,12 @@ void Board::removeTile(const int square) {
     currentState.bitboards[currentState.sideToMove] ^= squareAsBitboard;
 }
 
+void Board::blockTile(const int square) {
+    assert(square < 49);
+    const uint64_t squareAsBitboard = 1ULL << square;
+    currentState.bitboards[Blocked] ^= squareAsBitboard;
+}
+
 void Board::flipTile(const int square) {
     assert(square < 49);
     assert(tileAtIndex(square) != currentState.sideToMove);
@@ -150,12 +173,12 @@ void Board::flipNeighboringTiles(const int square) {
 int Board::tileAtIndex(const int square) const {
     assert(square < 49);
     const uint64_t squareAsBitboard = 1ULL << square;
-    for(int i = 0; i < 2; i++) {
+    for(int i = 0; i < 3; i++) {
         if((currentState.bitboards[i] & squareAsBitboard) != 0) {
             return i;
         }
     }
-    return 2;
+    return None;
 }
 
 int Board::evaluate() {
@@ -178,6 +201,9 @@ void Board::toString() {
                 case O:
                     pieceChar = 'o';
                     break;
+                case Blocked:
+                    pieceChar = '-';
+                    break;
             }
             std::cout << pieceChar << " ";
         }
@@ -195,12 +221,12 @@ std::string Board::getFen() {
         int numEmptyFiles = 0;
         for(int file = 0; file < 7; file++) {
             int piece = tileAtIndex(7*rank+file);
-            if(piece != 2) {
+            if(piece != None) {
                 if(numEmptyFiles != 0) {
                     fen += std::to_string(numEmptyFiles);
                     numEmptyFiles = 0;
                 }
-                fen += piece == X ? "x" : "o";
+                fen += piece == X ? "x" : piece == O ? "o" : "-";
             }
             else {
                 numEmptyFiles++;

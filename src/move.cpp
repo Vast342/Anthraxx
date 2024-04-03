@@ -52,8 +52,10 @@ std::string Move::toLongAlgebraic() {
     if(getFlag() == Double) {
         longAlgebraic += squareNames[getStartSquare()];
         longAlgebraic += squareNames[getEndSquare()];
-    } else {
+    } else if(getFlag() == Single) {
         longAlgebraic += squareNames[getEndSquare()];
+    } else {
+        longAlgebraic = "0000";
     }
     return longAlgebraic;
 }
