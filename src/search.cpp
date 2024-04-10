@@ -4,21 +4,33 @@
 
 bool timesUp = false;
 
+int winScore = 10000000;
+int lossScore = -10000000;
+
 int nodes = 0;
 
 void Engine::scoreMoves(const Board &board, const std::array<Move, 194> &moves, std::array<int, 194> &moveScores, const int totalMoves) {
     uint64_t opponents = board.getBitboard(1 - board.getColorToMove());
+    Transposition *entry = tt->getEntry(board.getZobristHash());
     for(int i = 0; i < totalMoves; i++) {
         Move move = moves[i];
-        uint64_t neighbors = (opponents & neighboringTiles[move.getEndSquare()]);
-        moveScores[i] = __builtin_popcountll(neighbors);
-        moveScores[i] += (move.getFlag() == Single) * 10;
+        if(move == entry->bestMove) {
+            moveScores[i] = 100000000;
+        } else {
+            uint64_t neighbors = (opponents & neighboringTiles[move.getEndSquare()]);
+            moveScores[i] = __builtin_popcountll(neighbors);
+            moveScores[i] += (move.getFlag() == Single) * 10;
+        }
     }
 }
 
 int Engine::negamax(Board &board, int alpha, int beta, int depth, int ply) {
     if(depth <= 0) return board.evaluate();
-    if(nodes % 4096 == 0 && std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - begin).count() > hardLimit) {
+    /*int state = board.getGameState();
+    if(state == Win) return winScore - ply;
+    if(state == Loss) return lossScore + ply;
+    if(state == Draw) return 0;*/
+    if(nodes % 1024 == 0 && std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - begin).count() > hardLimit) {
         timesUp = true;
         return 0;
     }
@@ -31,6 +43,7 @@ int Engine::negamax(Board &board, int alpha, int beta, int depth, int ply) {
     scoreMoves(board, moves, moveScores, totalMoves);
 
     int bestScore = -1000000;
+    Move bestMove;
     
     for(int i = 0; i < totalMoves; i++) {
         // Incremental Sorting
@@ -55,16 +68,20 @@ int Engine::negamax(Board &board, int alpha, int beta, int depth, int ply) {
 
             if(score > alpha) {
                 alpha = score;
+                bestMove = move;
                 if(ply == 0) rootBestMove = move;
             }
 
             if(score >= beta) {
+                bestMove = move;
                 if(ply == 0) rootBestMove = move;
                 break;
             }
         }
         
     }
+
+    tt->pushEntry(Transposition(bestMove), board.getZobristHash());
 
     return bestScore;
 }
@@ -85,10 +102,11 @@ Move Engine::think(Board board, const int softTimeLimit, const int hardTimeLimit
     for(int i = 1; i < 100; i++) {
         const Move previousBest = rootBestMove;
 
-        const int score = negamax(board, -10000000, 10000000, i, 0);
+        const int score = negamax(board, lossScore, winScore, i, 0);
         
         if(timesUp) {
-            return previousBest;
+            rootBestMove = previousBest;
+            break;
         }
         const auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - begin).count();
         if(info) outputInfo(score, i, elapsedTime);

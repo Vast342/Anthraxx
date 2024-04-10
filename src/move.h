@@ -14,6 +14,7 @@ struct Move {
         Move(std::string longAlgebraic);
         Move();
         std::string toLongAlgebraic();
+        [[nodiscard]] constexpr auto operator==(const Move &other) const -> bool = default;
     private:
         uint16_t value;
 };

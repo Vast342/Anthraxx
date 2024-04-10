@@ -10,12 +10,17 @@ enum Colors {
     Black, White, Block, None
 };
 
+enum GameStates {
+    Win, Loss, Draw, StillGoing
+};
+
 struct BoardState {
     // x, o
     std::array<uint64_t, 3> bitboards;
     uint8_t sideToMove;
     uint16_t plyCount;
     uint8_t hundredPlyCounter; 
+    uint64_t zobristHash;
 };
 
 struct Board {
@@ -30,6 +35,8 @@ struct Board {
         void toString();
         std::string getFen();
         uint64_t getBitboard(int bitboard) const;
+        uint64_t getZobristHash() const;
+        int getGameState();
     private:
         BoardState currentState;
         std::vector<BoardState> stateHistory;
@@ -41,3 +48,5 @@ struct Board {
         void flipNeighboringTiles(const int square);
         int tileAtIndex(const int square) const;
 };
+
+void initializeZobrist();

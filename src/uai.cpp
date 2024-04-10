@@ -146,6 +146,7 @@ void interpretCommand(const std::string command) {
 }
 
 int main() {
+    initializeZobrist();
     newGame();
     std::cout << std::boolalpha;
     std::string command;

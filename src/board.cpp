@@ -3,6 +3,10 @@
 #include "move.h"
 #include "lookups.h"
 
+// zobrist hashing values 
+std::array<std::array<uint64_t, 2>, 49> zobTable;
+uint64_t zobColorToMove;
+
 void Board::makeMove(const Move move) {
     stateHistory.push_back(currentState);
     const int startSquare = move.getStartSquare();
@@ -26,6 +30,7 @@ void Board::makeMove(const Move move) {
             break;
     }
     currentState.sideToMove = 1 - currentState.sideToMove;
+    currentState.zobristHash ^= zobColorToMove;
 }
 
 int Board::getMoves(std::array<Move, 194> &moves) {
@@ -88,6 +93,7 @@ Board::Board(std::string fen) {
     for(int i = 0; i < 3; i++) {
         currentState.bitboards[i] = 0ULL;
     }
+    currentState.zobristHash = 0;
     // main board state, segment 1
     const std::vector<std::string> segments = split(fen, ' ');
     std::vector<std::string> ranks = split(segments[0], '/');
@@ -116,6 +122,7 @@ Board::Board(std::string fen) {
     }
     // convert color to move into 0 or 1, segment 2
     currentState.sideToMove = (segments[1] == "o" ? 1 : 0);
+    if(currentState.sideToMove == X) currentState.zobristHash ^= zobColorToMove;
     // 50 move counter, segment 3
     currentState.hundredPlyCounter = std::stoi(segments[2]);
     // ply count, segment 4
@@ -132,6 +139,7 @@ void Board::addTile(const int square) {
     assert(tileAtIndex(square) == None);
     const uint64_t squareAsBitboard = 1ULL << square;
     currentState.bitboards[currentState.sideToMove] ^= squareAsBitboard;
+    currentState.zobristHash ^= zobTable[currentState.sideToMove][square];
 }
 
 void Board::initializeTile(const int square, const int color) {
@@ -139,6 +147,7 @@ void Board::initializeTile(const int square, const int color) {
     assert(tileAtIndex(square) == None);
     const uint64_t squareAsBitboard = 1ULL << square;
     currentState.bitboards[color] ^= squareAsBitboard;
+    currentState.zobristHash ^= zobTable[color][square];
 }
 
 void Board::removeTile(const int square) {
@@ -146,6 +155,7 @@ void Board::removeTile(const int square) {
     assert(tileAtIndex(square) == currentState.sideToMove);
     const uint64_t squareAsBitboard = 1ULL << square;
     currentState.bitboards[currentState.sideToMove] ^= squareAsBitboard;
+    currentState.zobristHash ^= zobTable[currentState.sideToMove][square];
 }
 
 void Board::blockTile(const int square) {
@@ -160,6 +170,8 @@ void Board::flipTile(const int square) {
     const uint64_t squareAsBitboard = 1ULL << square;
     currentState.bitboards[currentState.sideToMove] ^= squareAsBitboard;
     currentState.bitboards[1 - currentState.sideToMove] ^= squareAsBitboard;
+    currentState.zobristHash ^= zobTable[currentState.sideToMove][square];
+    currentState.zobristHash ^= zobTable[1 - currentState.sideToMove][square];
 }
 
 void Board::flipNeighboringTiles(const int square) {
@@ -255,4 +267,47 @@ std::string Board::getFen() {
 
 uint64_t Board::getBitboard(int bitboard) const {
     return currentState.bitboards[bitboard];
+}
+
+void initializeZobrist() {
+    // random number stuff
+    //std::random_device rd;
+    std::mt19937_64 gen(0xABBABA5ED);
+    std::uniform_int_distribution<uint64_t> dis;
+    // color to move
+    zobColorToMove = dis(gen);
+    // squares
+    for(int i = 0; i < 49; i++) {
+        for(int j = 0; j < 2; j++) {
+            zobTable[i][j] = dis(gen);
+        }
+    }
+}
+
+uint64_t Board::getZobristHash() const {
+    return currentState.zobristHash;
+}
+
+int Board::getGameState() {
+    int selfOccupied = __builtin_popcountll(currentState.bitboards[currentState.sideToMove]);
+    int opponentOccupied = __builtin_popcountll(currentState.bitboards[1 - currentState.sideToMove]);
+
+    if (selfOccupied + opponentOccupied == 49) {
+        if(selfOccupied > opponentOccupied) {
+            return Win;
+        } else if(selfOccupied < opponentOccupied) {
+            return Loss;
+        } else if(selfOccupied == opponentOccupied) {
+            return Draw;
+        }
+    } else if(selfOccupied == 0) {
+        return Loss;
+    } else if(opponentOccupied == 0) {
+        return Win;
+    } else if (currentState.hundredPlyCounter >= 100) {
+        return Draw;
+    } else {
+        return StillGoing;
+    }
+    return StillGoing;
 }

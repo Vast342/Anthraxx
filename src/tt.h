@@ -3,6 +3,12 @@
 #include "move.h"
 
 struct Transposition {
+    Transposition() {
+        bestMove = Move();
+    };
+    Transposition(Move move) {
+        bestMove = move;
+    };
     Move bestMove;
 };
 
@@ -20,6 +26,9 @@ struct TT {
         }
         Transposition* getEntry(uint64_t hash) {
             return &table[hash & mask];
+        }
+        void pushEntry(Transposition entry, uint64_t hash) {
+            table[hash & mask] = entry;
         }
         void clearTable() {
             std::fill(table.begin(), table.end(), Transposition());
