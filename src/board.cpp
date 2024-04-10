@@ -139,7 +139,7 @@ void Board::addTile(const int square) {
     assert(tileAtIndex(square) == None);
     const uint64_t squareAsBitboard = 1ULL << square;
     currentState.bitboards[currentState.sideToMove] ^= squareAsBitboard;
-    currentState.zobristHash ^= zobTable[currentState.sideToMove][square];
+    currentState.zobristHash ^= zobTable[square][currentState.sideToMove];
 }
 
 void Board::initializeTile(const int square, const int color) {
@@ -147,7 +147,7 @@ void Board::initializeTile(const int square, const int color) {
     assert(tileAtIndex(square) == None);
     const uint64_t squareAsBitboard = 1ULL << square;
     currentState.bitboards[color] ^= squareAsBitboard;
-    currentState.zobristHash ^= zobTable[color][square];
+    currentState.zobristHash ^= zobTable[square][color];
 }
 
 void Board::removeTile(const int square) {
@@ -155,7 +155,7 @@ void Board::removeTile(const int square) {
     assert(tileAtIndex(square) == currentState.sideToMove);
     const uint64_t squareAsBitboard = 1ULL << square;
     currentState.bitboards[currentState.sideToMove] ^= squareAsBitboard;
-    currentState.zobristHash ^= zobTable[currentState.sideToMove][square];
+    currentState.zobristHash ^= zobTable[square][currentState.sideToMove];
 }
 
 void Board::blockTile(const int square) {
@@ -170,8 +170,8 @@ void Board::flipTile(const int square) {
     const uint64_t squareAsBitboard = 1ULL << square;
     currentState.bitboards[currentState.sideToMove] ^= squareAsBitboard;
     currentState.bitboards[1 - currentState.sideToMove] ^= squareAsBitboard;
-    currentState.zobristHash ^= zobTable[currentState.sideToMove][square];
-    currentState.zobristHash ^= zobTable[1 - currentState.sideToMove][square];
+    currentState.zobristHash ^= zobTable[square][currentState.sideToMove];
+    currentState.zobristHash ^= zobTable[square][1 - currentState.sideToMove];
 }
 
 void Board::flipNeighboringTiles(const int square) {
@@ -286,6 +286,22 @@ void initializeZobrist() {
 
 uint64_t Board::getZobristHash() const {
     return currentState.zobristHash;
+}
+
+bool Board::zobristCheck() {
+    uint64_t hash = 0;
+    for(int i = 0; i < 49; i++) {
+        int piece = tileAtIndex(i);
+        if(piece == X) {
+            hash ^= zobTable[i][X];
+        } else if(piece == O) {
+            hash ^= zobTable[i][O];
+        }
+    }
+    if(currentState.sideToMove == X) hash ^= zobColorToMove;
+
+
+    return hash = currentState.zobristHash;
 }
 
 int Board::getGameState() {

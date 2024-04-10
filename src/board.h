@@ -37,6 +37,7 @@ struct Board {
         uint64_t getBitboard(int bitboard) const;
         uint64_t getZobristHash() const;
         int getGameState();
+        bool zobristCheck();
     private:
         BoardState currentState;
         std::vector<BoardState> stateHistory;
