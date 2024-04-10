@@ -2,13 +2,11 @@
 #include "global_includes.h"
 #include "lookups.h"
 
-int hardLimit;
-uint64_t nodes;
-bool timesUp;
-Move rootBestMove;
-std::chrono::steady_clock::time_point begin;
+bool timesUp = false;
 
-void scoreMoves(const Board &board, const std::array<Move, 194> &moves, std::array<int, 194> &moveScores, const int totalMoves) {
+int nodes = 0;
+
+void Engine::scoreMoves(const Board &board, const std::array<Move, 194> &moves, std::array<int, 194> &moveScores, const int totalMoves) {
     uint64_t opponents = board.getBitboard(1 - board.getColorToMove());
     for(int i = 0; i < totalMoves; i++) {
         Move move = moves[i];
@@ -18,7 +16,7 @@ void scoreMoves(const Board &board, const std::array<Move, 194> &moves, std::arr
     }
 }
 
-int negamax(Board &board, int alpha, int beta, int depth, int ply) {
+int Engine::negamax(Board &board, int alpha, int beta, int depth, int ply) {
     if(depth <= 0) return board.evaluate();
     if(nodes % 4096 == 0 && std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - begin).count() > hardLimit) {
         timesUp = true;
@@ -71,13 +69,13 @@ int negamax(Board &board, int alpha, int beta, int depth, int ply) {
     return bestScore;
 }
 
-void outputInfo(int score, int depth, int elapsedTime) {
+void Engine::outputInfo(int score, int depth, int elapsedTime) {
     std::string scoreString = " score cp ";
     scoreString += std::to_string(score);
     std::cout << "info depth " << std::to_string(depth) << " nodes " << std::to_string(nodes) << " time " << std::to_string(elapsedTime) << " nps " << std::to_string(int(double(nodes) / (elapsedTime == 0 ? 1 : elapsedTime) * 1000)) << scoreString << " pv " << rootBestMove.toLongAlgebraic() << std::endl;
 }
 
-Move think(Board board, const int softTimeLimit, const int hardTimeLimit) {
+Move Engine::think(Board board, const int softTimeLimit, const int hardTimeLimit, bool info) {
     hardLimit = hardTimeLimit;
     nodes = 0;
     timesUp = false;
@@ -93,9 +91,10 @@ Move think(Board board, const int softTimeLimit, const int hardTimeLimit) {
             return previousBest;
         }
         const auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - begin).count();
-        outputInfo(score, i, elapsedTime);
+        if(info) outputInfo(score, i, elapsedTime);
         if(elapsedTime > softTimeLimit) break;
     }
     
+    if(info) std::cout << "bestmove " << rootBestMove.toLongAlgebraic() << std::endl;
     return rootBestMove;
 }
