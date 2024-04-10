@@ -252,3 +252,7 @@ std::string Board::getFen() {
     fen += std::to_string(currentState.plyCount / 2 + currentState.sideToMove);
     return fen;
 }
+
+uint64_t Board::getBitboard(int bitboard) const {
+    return currentState.bitboards[bitboard];
+}

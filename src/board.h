@@ -29,6 +29,7 @@ struct Board {
         int getColorToMove() const;
         void toString();
         std::string getFen();
+        uint64_t getBitboard(int bitboard) const;
     private:
         BoardState currentState;
         std::vector<BoardState> stateHistory;

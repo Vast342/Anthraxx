@@ -1,11 +1,22 @@
 #include "search.h"
 #include "global_includes.h"
+#include "lookups.h"
 
 int hardLimit;
 uint64_t nodes;
 bool timesUp;
 Move rootBestMove;
 std::chrono::steady_clock::time_point begin;
+
+void scoreMoves(const Board &board, const std::array<Move, 194> &moves, std::array<int, 194> &moveScores, const int totalMoves) {
+    uint64_t opponents = board.getBitboard(1 - board.getColorToMove());
+    for(int i = 0; i < totalMoves; i++) {
+        Move move = moves[i];
+        uint64_t neighbors = (opponents & neighboringTiles[move.getEndSquare()]);
+        moveScores[i] = __builtin_popcountll(neighbors);
+        moveScores[i] += (move.getFlag() == Single) * 10;
+    }
+}
 
 int negamax(Board &board, int alpha, int beta, int depth, int ply) {
     if(depth <= 0) return board.evaluate();
@@ -17,13 +28,21 @@ int negamax(Board &board, int alpha, int beta, int depth, int ply) {
     // tt cutoffs and a bunch of other stuff would go here
 
     std::array<Move, 194> moves;
+    std::array<int, 194> moveScores;
     const int totalMoves = board.getMoves(moves);
-    // move ordering would go here
+    scoreMoves(board, moves, moveScores, totalMoves);
 
     int bestScore = -1000000;
     
     for(int i = 0; i < totalMoves; i++) {
-        // sorting would go here
+        // Incremental Sorting
+        for(int j = i + 1; j < totalMoves; j++) {
+            if(moveScores[j] > moveScores[i]) {
+                std::swap(moveScores[j], moveScores[i]);
+                std::swap(moves[j], moves[i]);
+            }
+        }
+
         Move move = moves[i];
         // buncha pruning goes here
         board.makeMove(move);
