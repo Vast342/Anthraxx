@@ -30,9 +30,9 @@ void loadPosition(const std::vector<std::string>& bits) {
 
 // has the engine identify itself when the GUI says uai
 void identify() {
-    std::cout << "id name Claritaxx V0.1.1\n";
+    std::cout << "id name Claritaxx " << Version << '\n';
     std::cout << "id author Vast\n";
-    std::cout << "uaiok\n";
+    std::cout << "uaiok" << std::endl;
 }
 
 // tells the engine to search
