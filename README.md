@@ -1,4 +1,4 @@
-### Claritaxx
+### Anthraxx
 
 A work-in-progress UAI Ataxx engine, using skills obtained from working on my chess engine, Clarity.
 
