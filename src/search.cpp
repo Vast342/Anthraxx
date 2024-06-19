@@ -1,3 +1,20 @@
+/*
+    Anthraxx
+    Copyright (C) 2024 Joseph Pasfield
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
 #include "search.h"
 #include "global_includes.h"
 #include "lookups.h"
@@ -9,12 +26,11 @@ constexpr int lossScore = -10000000;
 
 int nodes = 0;
 
-void Engine::scoreMoves(const Board &board, const std::array<Move, 194> &moves, std::array<int, 194> &moveScores, const int totalMoves) {
+void Engine::scoreMoves(const Board &board, const std::array<Move, 194> &moves, std::array<int, 194> &moveScores, const int totalMoves, const Move ttMove) {
     uint64_t opponents = board.getBitboard(1 - board.getColorToMove());
-    Transposition *entry = tt->getEntry(board.getZobristHash());
     for(int i = 0; i < totalMoves; i++) {
         Move move = moves[i];
-        if(move == entry->bestMove) {
+        if(move == ttMove) {
             moveScores[i] = 100000000;
         } else {
             uint64_t neighbors = (opponents & neighboringTiles[move.getEndSquare()]);
@@ -35,12 +51,13 @@ int Engine::negamax(Board &board, int alpha, int beta, int depth, int ply) {
         return 0;
     }
 
+    Transposition *entry = tt->getEntry(board.getZobristHash());
     // tt cutoffs and a bunch of other stuff would go here
 
     std::array<Move, 194> moves;
     std::array<int, 194> moveScores;
     const int totalMoves = board.getMoves(moves);
-    scoreMoves(board, moves, moveScores, totalMoves);
+    scoreMoves(board, moves, moveScores, totalMoves, entry->bestMove);
 
     int bestScore = -1000000;
     Move bestMove;

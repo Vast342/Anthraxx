@@ -1,7 +1,7 @@
 # Compiler and flags
 CXX := clang
 ARCH := -march=native
-VERSION := V0.0.4
+VERSION := V0.0.5
 CXXFLAGS := -std=c++20 -flto $(ARCH) -fexceptions -Wall -Wextra
 LDFLAGS :=
 
