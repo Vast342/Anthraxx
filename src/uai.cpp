@@ -78,7 +78,7 @@ void go(const std::vector<std::string> &bits) {
         }
     }
     if(depth != 0) {
-
+        engine.fixedDepthSearch(board, depth, true);
     } else if(time != 0) {
         // go wtime x btime x
         // the formulas here are former formulas from Stormphrax, so this means that they are adapted to Chess timing, and may not be the best for Ataxx
