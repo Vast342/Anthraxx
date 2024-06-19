@@ -20,7 +20,7 @@ struct Engine {
         Move rootBestMove;
         TT* tt;
         std::chrono::steady_clock::time_point begin;
-        void scoreMoves(const Board &board, const std::array<Move, 194> &moves, std::array<int, 194> &moveScores, const int totalMoves);
+        void scoreMoves(const Board &board, const std::array<Move, 194> &moves, std::array<int, 194> &moveScores, const int totalMoves, const Move ttMove);
         int negamax(Board &board, int alpha, int beta, int depth, int ply);
         void outputInfo(int score, int depth, int elapsedTime);
 };

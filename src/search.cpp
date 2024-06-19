@@ -9,12 +9,11 @@ constexpr int lossScore = -10000000;
 
 int nodes = 0;
 
-void Engine::scoreMoves(const Board &board, const std::array<Move, 194> &moves, std::array<int, 194> &moveScores, const int totalMoves) {
+void Engine::scoreMoves(const Board &board, const std::array<Move, 194> &moves, std::array<int, 194> &moveScores, const int totalMoves, const Move ttMove) {
     uint64_t opponents = board.getBitboard(1 - board.getColorToMove());
-    Transposition *entry = tt->getEntry(board.getZobristHash());
     for(int i = 0; i < totalMoves; i++) {
         Move move = moves[i];
-        if(move == entry->bestMove) {
+        if(move == ttMove) {
             moveScores[i] = 100000000;
         } else {
             uint64_t neighbors = (opponents & neighboringTiles[move.getEndSquare()]);
@@ -35,12 +34,13 @@ int Engine::negamax(Board &board, int alpha, int beta, int depth, int ply) {
         return 0;
     }
 
+    Transposition *entry = tt->getEntry(board.getZobristHash());
     // tt cutoffs and a bunch of other stuff would go here
 
     std::array<Move, 194> moves;
     std::array<int, 194> moveScores;
     const int totalMoves = board.getMoves(moves);
-    scoreMoves(board, moves, moveScores, totalMoves);
+    scoreMoves(board, moves, moveScores, totalMoves, entry->bestMove);
 
     int bestScore = -1000000;
     Move bestMove;
@@ -58,7 +58,10 @@ int Engine::negamax(Board &board, int alpha, int beta, int depth, int ply) {
         // buncha pruning goes here
         board.makeMove(move);
         nodes++;
-        const int score = -negamax(board, -beta, -alpha, depth - 1, ply + 1);
+        int score = -negamax(board, -alpha - 1, -alpha, depth - 1, ply + 1);
+        if(score > alpha && score < beta) {
+            score = -negamax(board, -beta, -alpha, depth - 1, ply + 1);
+        }
         board.undoMove();
 
         if(timesUp) return 0;
