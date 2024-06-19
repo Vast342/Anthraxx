@@ -75,11 +75,7 @@ int Engine::negamax(Board &board, int alpha, int beta, int depth, int ply) {
         // buncha pruning goes here
         board.makeMove(move);
         nodes++;
-        // Principal Variation Search (PVS)
-        int score = -negamax(board, -alpha - 1, -alpha, depth - 1, ply + 1);
-        if(score > alpha && score < beta) {
-            score = -negamax(board, -beta, -alpha, depth - 1, ply + 1);
-        }
+        const int score = -negamax(board, -beta, -alpha, depth - 1, ply + 1);
         board.undoMove();
 
         if(timesUp) return 0;
