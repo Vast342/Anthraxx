@@ -4,26 +4,28 @@
 #include "search.h"
 #include "tt.h"
 
-int hardBoundDivisor = 2;
-int softBoundFractionNumerator = 3;
-int softBoundFractionDenominator = 4;
-double softBoundMultiplier = 0.6;
-int defaultMovesToGo = 20;
-
 TT tt;
-std::vector<Engine> engines;
-std::vector<std::jthread> threads;
+Engine engine(&tt);
 int threadCount = 1;
 Board board("x5o/7/7/7/7/7/o5x x 0 1");
 
 // resets everything
 void newGame() {
-    engines.clear();
-    for(int i = 0; i < threadCount; i++) {
-        engines.emplace_back(&tt);
-    }
-    tt.clearTable();
+    //engine.newGame();
     board = Board("x5o/7/7/7/7/7/o5x x 0 1");
+    tt.clearTable();
+}
+
+void runBench(int depth = 7) {
+    int total = 0;
+    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+    for(const auto& [fen, nodes] : positions) {
+        newGame();
+        Board board(fen);
+        total += engine.benchSearch(board, depth);
+    }
+    const auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - begin).count();
+    std::cout << total << " nodes " << std::to_string(int(total / (double(elapsedTime) / 1000))) << " nps" << std::endl;
 }
 
 // loads a position, either startpos or a fen string
@@ -56,7 +58,8 @@ void identify() {
 void go(const std::vector<std::string> &bits) {
     int time = 0;
     int inc = 0;
-    int movestogo = defaultMovesToGo;
+    int movestogo = 20;
+    int depth = 0;
     for(int i = 1; i < std::ssize(bits); i+=2) {
         if(bits[i] == "wtime" && board.getColorToMove() == 1) {
             time = std::stoi(bits[i+1]);
@@ -70,24 +73,21 @@ void go(const std::vector<std::string> &bits) {
         if(bits[i] == "binc" && board.getColorToMove() == 0) {
             inc = std::stoi(bits[i+1]);
         }
+        if(bits[i] == "depth") {
+            depth = std::stoi(bits[i+1]);
+        }
     }
-    // go wtime x btime x
-    // the formulas here are former formulas from Stormphrax, so this means that they are adapted to Chess timing, and may not be the best for Ataxx
-    const int softBound = softBoundMultiplier * (time / movestogo + inc * softBoundFractionNumerator / softBoundFractionDenominator);
-    const int hardBound = time / hardBoundDivisor;
-    for(int i = 0; i < threadCount; i++) {
-        threads.emplace_back([i, softBound, hardBound]{
-            engines[i].think(board, softBound, hardBound, i == 0);
-        });
-    }
-}
+    if(depth != 0) {
 
-void stopThePresses() {
-    timesUp = true;
-    for(int i = 0; i < threadCount; i++) {
-        threads[i].join();
+    } else if(time != 0) {
+        // go wtime x btime x
+        // the formulas here are former formulas from Stormphrax, so this means that they are adapted to Chess timing, and may not be the best for Ataxx
+        const int softBound = 0.6 * (time / movestogo + inc * 3.0 / 4.0);
+        const int hardBound = time / 2;
+        engine.think(board, softBound, hardBound, true);
+    } else {
+        std::cout << "Invalid arguments" << std::endl;
     }
-    threads.clear();
 }
 
 // sets options, though currently just the hash size
@@ -138,24 +138,29 @@ void interpretCommand(const std::string command) {
         runPerftSuite();  
     } else if(bits[0] == "setoption") {
         setOption(bits);
-    } else if(bits[0] == "stop") {
-        stopThePresses();
+    } else if(bits[0] == "bench") {
+        if(bits.size() == 1) {
+            runBench();
+        } else {
+            runBench(std::stoi(bits[1]));
+        }
     } else {
         std::cout << "invalid or unsupported command\n";
     }
 }
 
-int main() {
+int main(int argc, char* argv[]) {
     initializeZobrist();
     newGame();
     std::cout << std::boolalpha;
+    if(argc > 1 && std::string(argv[1]) == "bench") {
+        runBench();
+        return 0;
+    }
     std::string command;
     while(true) {
         std::getline(std::cin, command, '\n');
         if(command == "quit") {
-            if(threads.size() != 0) {
-                stopThePresses();
-            }
             return 0;
         }
         interpretCommand(command);

@@ -82,9 +82,9 @@ const std::pair<std::string, std::vector<int>> positions[] = {
 
 inline void runPerftSuite() {
     int j = 0;
-    for (const auto& [fen, nodes] : positions) {
+    for(const auto& [fen, nodes] : positions) {
         Board board(fen);
-        for (unsigned int i = 0; i < nodes.size(); ++i) {
+        for(unsigned int i = 0; i < nodes.size(); ++i) {
             j++;
             int result = perft(board, i);
             if(result == nodes[i]) {

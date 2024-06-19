@@ -4,8 +4,8 @@
 
 bool timesUp = false;
 
-int winScore = 10000000;
-int lossScore = -10000000;
+constexpr int winScore = 10000000;
+constexpr int lossScore = -10000000;
 
 int nodes = 0;
 
@@ -26,10 +26,10 @@ void Engine::scoreMoves(const Board &board, const std::array<Move, 194> &moves, 
 
 int Engine::negamax(Board &board, int alpha, int beta, int depth, int ply) {
     if(depth <= 0) return board.evaluate();
-    /*int state = board.getGameState();
+    int state = board.getGameState();
     if(state == Win) return winScore - ply;
     if(state == Loss) return lossScore + ply;
-    if(state == Draw) return 0;*/
+    if(state == Draw) return 0;
     if(nodes % 1024 == 0 && std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - begin).count() > hardLimit) {
         timesUp = true;
         return 0;
@@ -115,4 +115,41 @@ Move Engine::think(Board board, const int softTimeLimit, const int hardTimeLimit
     
     if(info) std::cout << "bestmove " << rootBestMove.toLongAlgebraic() << std::endl;
     return rootBestMove;
+}
+
+Move Engine::fixedDepthSearch(Board board, const int depth, const bool info) {
+    hardLimit = 1215752192;
+    nodes = 0;
+    timesUp = false;
+
+    begin = std::chrono::steady_clock::now();
+
+    for(int i = 1; i <= depth; i++) {
+        const Move previousBest = rootBestMove;
+
+        const int score = negamax(board, lossScore, winScore, i, 0);
+        
+        if(timesUp) {
+            rootBestMove = previousBest;
+            break;
+        }
+        const auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - begin).count();
+        if(info) outputInfo(score, i, elapsedTime);
+    }
+    
+    if(info) std::cout << "bestmove " << rootBestMove.toLongAlgebraic() << std::endl;
+    return rootBestMove;
+}
+
+int Engine::benchSearch(Board board, const int depth) {
+    hardLimit = 1215752192;
+    nodes = 0;
+    timesUp = false;
+
+    begin = std::chrono::steady_clock::now();
+
+    for(int i = 1; i <= depth; i++) {
+        negamax(board, lossScore, winScore, i, 0);
+    }
+    return nodes;
 }

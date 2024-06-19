@@ -1,7 +1,7 @@
 # Compiler and flags
 CXX := clang
 ARCH := -march=native
-VERSION := V0.0.3
+VERSION := V0.0.4
 CXXFLAGS := -std=c++20 -flto $(ARCH) -fexceptions -Wall -Wextra
 LDFLAGS :=
 
@@ -21,8 +21,8 @@ SRCS := $(wildcard src/*.cpp)
 OBJS := $(addprefix $(BUILD_DIR)/,$(notdir $(SRCS:.cpp=.o)))
 
 
-# Binary name (set to Claritaxx)
-EXE := Claritaxx
+# Binary name (set to Anthraxx)
+EXE := Anthraxx
 
 # Append .exe to the binary name on Windows
 ifeq ($(OS),Windows_NT)

@@ -13,6 +13,8 @@ struct Engine {
             tt = ttPointer;
         }
         Move think(Board board, int softTimeLimit, int hardTimeLimit, bool info);
+        Move fixedDepthSearch(Board board, const int depth, const bool info);
+        int benchSearch(Board board, const int depth);
     private:
         int hardLimit;
         Move rootBestMove;

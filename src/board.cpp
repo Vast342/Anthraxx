@@ -308,7 +308,7 @@ int Board::getGameState() {
     int selfOccupied = __builtin_popcountll(currentState.bitboards[currentState.sideToMove]);
     int opponentOccupied = __builtin_popcountll(currentState.bitboards[1 - currentState.sideToMove]);
 
-    if (selfOccupied + opponentOccupied == 49) {
+    if(selfOccupied + opponentOccupied == 49) {
         if(selfOccupied > opponentOccupied) {
             return Win;
         } else if(selfOccupied < opponentOccupied) {
@@ -320,7 +320,7 @@ int Board::getGameState() {
         return Loss;
     } else if(opponentOccupied == 0) {
         return Win;
-    } else if (currentState.hundredPlyCounter >= 100) {
+    } else if(currentState.hundredPlyCounter >= 100) {
         return Draw;
     } else {
         return StillGoing;
