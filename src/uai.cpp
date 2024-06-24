@@ -36,7 +36,7 @@ void newGame() {
 void runBench(int depth = 7) {
     int total = 0;
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-    for(const auto& [fen, nodes] : positions) {
+    for(const std::string &fen : benchPositions) {
         newGame();
         Board board(fen);
         total += engine.benchSearch(board, depth);

@@ -19,8 +19,7 @@
 #include "eval.h"
 
 constexpr int materialWeight = 100;
-constexpr std::array<int, 2> tempo = {150, 150};
 
 int evaluate(int sideToMove, const std::array<uint64_t, 3> &bitboards) {
-    return materialWeight * (__builtin_popcountll(bitboards[sideToMove]) - __builtin_popcountll(bitboards[1 - sideToMove])) + tempo[sideToMove];
+    return materialWeight * (__builtin_popcountll(bitboards[sideToMove]) - __builtin_popcountll(bitboards[1 - sideToMove]));
 }
