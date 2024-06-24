@@ -19,14 +19,30 @@
 #include "global_includes.h"
 #include "move.h"
 
+enum flags {
+    Undefined, FailLow, BetaCutoff, Exact
+};
+
 struct Transposition {
-    Transposition() {
-        bestMove = Move();
-    };
-    Transposition(Move move) {
-        bestMove = move;
-    };
+    uint64_t zobristKey;
+    int score;
     Move bestMove;
+    uint8_t flag;
+    uint8_t depth;
+    Transposition() {
+        zobristKey = 0;
+        bestMove = Move();
+        flag = 0;
+        score = 0;
+        depth = 0;
+    }
+    Transposition(uint64_t _zobristKey, Move _bestMove, uint8_t _flag, int _score, uint8_t _depth) {
+        zobristKey = _zobristKey;
+        bestMove = _bestMove;
+        flag = _flag;
+        score = _score;
+        depth = _depth;
+    }
 };
 
 constexpr int defaultSize = 64;
