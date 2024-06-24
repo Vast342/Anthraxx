@@ -146,7 +146,7 @@ void interpretCommand(const std::string command) {
     } else if(bits[0] == "makemove") {
         board.makeMove(Move(bits[1]));
     } else if(bits[0] == "uainewgame") {
-        // I just added this so it wouldn't say it doesn't support uainewgame, it'll do something eventually  
+        newGame();
     } else if(bits[0] == "printstate") {
         board.toString();
     } else if(bits[0] == "getfen") {
