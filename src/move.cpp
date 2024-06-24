@@ -35,6 +35,7 @@ Move::Move() {
     value = 0;
 }
 
+// convert long algebraic form into a move
 Move::Move(std::string longAlgebraic) {
     int startSquare = 0;
     int endSquare = 0;
@@ -64,6 +65,7 @@ constexpr std::array<std::string_view, 49> squareNames = {
     "a7","b7","c7","d7","e7","f7","g7"
 };
 
+// convert a move into long algebraic text form
 std::string Move::toLongAlgebraic() {
     std::string longAlgebraic = "";
     if(getFlag() == Double) {

@@ -25,6 +25,7 @@
 std::array<std::array<uint64_t, 2>, 49> zobTable;
 uint64_t zobColorToMove;
 
+// makes a move on the board, and updates all values accordingly
 void Board::makeMove(const Move move) {
     stateHistory.push_back(currentState);
     const int startSquare = move.getStartSquare();
@@ -51,6 +52,7 @@ void Board::makeMove(const Move move) {
     currentState.zobristHash ^= zobColorToMove;
 }
 
+// gets all of the moves that are availible in the current position
 int Board::getMoves(std::array<Move, 194> &moves) const {
     if(currentState.hundredPlyCounter < 100) {
         uint64_t stmPieces = currentState.bitboards[sideToMove];
@@ -82,6 +84,7 @@ int Board::getMoves(std::array<Move, 194> &moves) const {
     return 0;
 }
 
+// counts the number of moves in the position, only saves time in perft.
 int Board::getMoveCount() const {
     if(currentState.hundredPlyCounter < 100) {
         uint64_t stmPieces = currentState.bitboards[sideToMove];
@@ -104,6 +107,7 @@ int Board::getMoveCount() const {
     return 0;
 }
 
+// loads a fen into the board
 // fens have x and o for pieces, and the starting position is x5o/7/7/7/7/7/o5x x 0 1
 Board::Board(std::string fen) {
     stateHistory.clear();
@@ -147,12 +151,14 @@ Board::Board(std::string fen) {
     currentState.plyCount = std::stoi(segments[3]) * 2 - sideToMove;
 }
 
+// undoes most recent move
 void Board::undoMove() {
     currentState = stateHistory.back();
     stateHistory.pop_back();
     sideToMove = 1 - sideToMove;
 }
 
+// add a tile of the current color on the board
 void Board::addTile(const int square) {
     assert(square < 49);
     assert(tileAtIndex(square) == None);
@@ -161,6 +167,7 @@ void Board::addTile(const int square) {
     currentState.zobristHash ^= zobTable[square][sideToMove];
 }
 
+// adds a tile of any color to the board
 void Board::initializeTile(const int square, const int color) {
     assert(square < 49);
     assert(tileAtIndex(square) == None);
@@ -169,6 +176,7 @@ void Board::initializeTile(const int square, const int color) {
     currentState.zobristHash ^= zobTable[square][color];
 }
 
+// takes a tile of the current color off of the board
 void Board::removeTile(const int square) {
     assert(square < 49);
     assert(tileAtIndex(square) == sideToMove);
@@ -177,12 +185,14 @@ void Board::removeTile(const int square) {
     currentState.zobristHash ^= zobTable[square][sideToMove];
 }
 
+// blocks a tile so it can't be used
 void Board::blockTile(const int square) {
     assert(square < 49);
     const uint64_t squareAsBitboard = 1ULL << square;
     currentState.bitboards[Blocked] ^= squareAsBitboard;
 }
 
+// inverts the color of a tile
 void Board::flipTile(const int square) {
     assert(square < 49);
     assert(tileAtIndex(square) != sideToMove);
@@ -193,6 +203,7 @@ void Board::flipTile(const int square) {
     currentState.zobristHash ^= zobTable[square][1 - sideToMove];
 }
 
+// inverts the neighboring tiles to a square
 void Board::flipNeighboringTiles(const int square) {
     assert(square < 49);
     uint64_t neighbors = (currentState.bitboards[1 - sideToMove] & neighboringTiles[square]);
@@ -200,6 +211,7 @@ void Board::flipNeighboringTiles(const int square) {
     currentState.bitboards[sideToMove] ^= neighbors;
     currentState.bitboards[1 - sideToMove] ^= neighbors;
 
+    // zobrist hash updates, unfortunately quite a slowdown compared to the efficient update above.
     while(neighbors != 0) {
         int index = popLSB(neighbors);
         currentState.zobristHash ^= zobTable[index][sideToMove];
@@ -207,6 +219,7 @@ void Board::flipNeighboringTiles(const int square) {
     }
 }
 
+// returns the tile at a specific index
 int Board::tileAtIndex(const int square) const {
     assert(square < 49);
     const uint64_t squareAsBitboard = 1ULL << square;
@@ -218,14 +231,17 @@ int Board::tileAtIndex(const int square) const {
     return None;
 }
 
+// returns an evaluation of the board, or how good or bad it is for you.
 int Board::getEval() const {
     return 100 * (__builtin_popcountll(currentState.bitboards[sideToMove]) - __builtin_popcountll(currentState.bitboards[1 - sideToMove]));
 };
 
+// returns the color currently to move
 int Board::getColorToMove() const {
     return sideToMove;
 }
 
+// displays the board visually
 void Board::toString() const {
     for(int rank = 6; rank >= 0; rank--) {
         for(int file = 0; file < 7; file++) {
@@ -251,6 +267,7 @@ void Board::toString() const {
     std::cout << "Evaluation: " << std::to_string(getEval()) << '\n';
 }
 
+// converts the board into a fen string
 std::string Board::getFen() const {
     // code originally from the c# version of clarity, then c++ version of clarity, and now here!
     std::string fen = "";
@@ -290,10 +307,12 @@ std::string Board::getFen() const {
     return fen;
 }
 
+// gets a specific bitboard
 uint64_t Board::getBitboard(int bitboard) const {
     return currentState.bitboards[bitboard];
 }
 
+// initializes the values for zobrist hashing
 void initializeZobrist() {
     // random number stuff
     //std::random_device rd;
@@ -309,10 +328,12 @@ void initializeZobrist() {
     }
 }
 
+// returns the current zobrist hash
 uint64_t Board::getZobristHash() const {
     return currentState.zobristHash;
 }
 
+// recalculates the zobrist hash and checks that it is identical, for debugging
 bool Board::zobristCheck() const {
     uint64_t hash = 0;
     for(int i = 0; i < 49; i++) {
@@ -324,6 +345,7 @@ bool Board::zobristCheck() const {
     return hash == currentState.zobristHash;
 }
 
+// returns a value for if the game has ended or is still going
 int Board::getGameState() const {
     const int selfOccupied = __builtin_popcountll(currentState.bitboards[sideToMove]);
     const int opponentOccupied = __builtin_popcountll(currentState.bitboards[1 - sideToMove]);
