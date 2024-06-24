@@ -20,7 +20,6 @@
 #include "board.h"
 #include "move.h"
 #include "lookups.h"
-#include "eval.h"
 
 // zobrist hashing values 
 std::array<std::array<uint64_t, 2>, 49> zobTable;
@@ -200,6 +199,12 @@ void Board::flipNeighboringTiles(const int square) {
     
     currentState.bitboards[sideToMove] ^= neighbors;
     currentState.bitboards[1 - sideToMove] ^= neighbors;
+
+    while(neighbors != 0) {
+        int index = popLSB(neighbors);
+        currentState.zobristHash ^= zobTable[index][sideToMove];
+        currentState.zobristHash ^= zobTable[index][1 - sideToMove];
+    }
 }
 
 int Board::tileAtIndex(const int square) const {
@@ -214,7 +219,7 @@ int Board::tileAtIndex(const int square) const {
 }
 
 int Board::getEval() {
-    return evaluate(sideToMove, currentState.bitboards);
+    return 100 * (__builtin_popcountll(currentState.bitboards[sideToMove]) - __builtin_popcountll(currentState.bitboards[1 - sideToMove]));
 };
 
 int Board::getColorToMove() const {
@@ -312,16 +317,11 @@ bool Board::zobristCheck() {
     uint64_t hash = 0;
     for(int i = 0; i < 49; i++) {
         int piece = tileAtIndex(i);
-        if(piece == X) {
-            hash ^= zobTable[i][X];
-        } else if(piece == O) {
-            hash ^= zobTable[i][O];
-        }
+        if(piece < Blocked) hash ^= zobTable[i][piece];
     }
     if(sideToMove == X) hash ^= zobColorToMove;
 
-
-    return hash = currentState.zobristHash;
+    return hash == currentState.zobristHash;
 }
 
 int Board::getGameState() {
@@ -342,8 +342,6 @@ int Board::getGameState() {
         return Win;
     } else if(currentState.hundredPlyCounter >= 100) {
         return Draw;
-    } else {
-        return StillGoing;
     }
     return StillGoing;
 }
