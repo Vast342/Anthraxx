@@ -18,6 +18,7 @@
 #include "search.h"
 #include "global_includes.h"
 #include "lookups.h"
+#include "movepicker.h" 
 
 bool timesUp = false;
 
@@ -25,29 +26,6 @@ constexpr int winScore = 10000000;
 constexpr int lossScore = -10000000;
 
 int nodes = 0;
-
-/*
-    Orders the moves like this:
-    1: TT Move
-    2: Single Moves (10-18)
-    3: Double Moves (0-8)
-*/
-void Engine::scoreMoves(const Board &board, const std::array<Move, 194> &moves, std::array<int, 194> &moveScores, const int totalMoves, const Move ttMove) {
-    uint64_t opponents = board.getBitboard(1 - board.getColorToMove());
-    for(int i = 0; i < totalMoves; i++) {
-        Move move = moves[i];
-        if(move == ttMove) {
-            // good move from previous search
-            moveScores[i] = 100000000;
-        } else {
-            // single moves add a tile to the board so are in most cases good (though maybe less in endgames where you want control)
-            // captures are also better the more they can capture (again, in most cases)
-            uint64_t neighbors = (opponents & neighboringTiles[move.getEndSquare()]);
-            moveScores[i] = __builtin_popcountll(neighbors);
-            moveScores[i] += (move.getFlag() == Single) * 10;
-        }
-    }
-}
 
 int Engine::negamax(Board &board, int alpha, int beta, int depth, int ply) {
     if(depth <= 0) return board.getEval();
@@ -75,11 +53,7 @@ int Engine::negamax(Board &board, int alpha, int beta, int depth, int ply) {
         return entry->score; 
     }
 
-    // get moves and score them (could be replaced if I ever staged movegen)
-    std::array<Move, 194> moves;
-    std::array<int, 194> moveScores;
-    const int totalMoves = board.getMoves(moves);
-    scoreMoves(board, moves, moveScores, totalMoves, entry->bestMove);
+    MovePicker picker;
 
     // values for saving to TT later
     int bestScore = -1000000;
@@ -87,16 +61,10 @@ int Engine::negamax(Board &board, int alpha, int beta, int depth, int ply) {
     int flag = FailLow;
     
     // move loop
-    for(int i = 0; i < totalMoves; i++) {
-        // Incremental Sorting
-        for(int j = i + 1; j < totalMoves; j++) {
-            if(moveScores[j] > moveScores[i]) {
-                std::swap(moveScores[j], moveScores[i]);
-                std::swap(moves[j], moves[i]);
-            }
-        }
-
-        Move move = moves[i];
+    while(true) {
+        Move move = picker.next(board, entry->bestMove);
+        
+        if(move == Move()) break;
 
         // make the move and call the next node        
         board.makeMove(move);

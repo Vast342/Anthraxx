@@ -368,3 +368,22 @@ int Board::getGameState() const {
     }
     return StillGoing;
 }
+
+bool Board::isLegal(const Move &move) const {
+    if (move == Move()) {
+        return false;
+    }
+
+    const int from = move.getStartSquare();
+    const int to = move.getEndSquare();
+    const uint64_t fromBitboard = 1ULL << from;
+    const uint64_t toBitboard = 1ULL << to;
+    const uint64_t filled = currentState.bitboards[X] | currentState.bitboards[O] | currentState.bitboards[Blocked];
+    if (toBitboard & filled) {
+        return false;
+    }
+    if (move.getFlag() == Single) {
+        return neighboringTiles[to] & currentState.bitboards[sideToMove];
+    }
+    return nextDoorTiles[to] & currentState.bitboards[sideToMove] & fromBitboard;
+}

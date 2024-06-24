@@ -54,6 +54,7 @@ struct Board {
         uint64_t getZobristHash() const;
         int getGameState() const;
         bool zobristCheck() const;
+        bool isLegal(const Move &move) const;
     private:
         BoardState currentState;
         uint8_t sideToMove;

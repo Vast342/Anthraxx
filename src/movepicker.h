@@ -16,27 +16,28 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 #pragma once
-
 #include "global_includes.h"
 #include "move.h"
 #include "board.h"
-#include "tt.h"
+#include "lookups.h"
 
-extern bool timesUp;
+enum phases {
+    TTMove, ReadyToInit, Else
+};
 
-struct Engine {
+struct MovePicker {
     public: 
-        Engine(TT *ttPointer) {
-            tt = ttPointer;
+        MovePicker() {
+            movesGotten = 0;
+            totalMoves = 0;
+            phase = ReadyToInit;
         }
-        Move think(Board board, const int softTimeLimit, const int hardTimeLimit, const int depth, bool info);
-        int benchSearch(Board board, const int depth);
-    private:
-        int hardLimit;
-        Move rootBestMove;
-        TT* tt;
-        std::chrono::steady_clock::time_point begin;
-        void iterativeDeepen(Board board, const int softTimeLimit, const int depth, bool info);
-        int negamax(Board &board, int alpha, int beta, int depth, int ply);
-        void outputInfo(int score, int depth, int elapsedTime);
+        Move next(const Board &board, const Move ttMove);
+    private: 
+        void scoreMoves(const Board &board, const Move ttMove);
+        int movesGotten;
+        int phase;
+        int totalMoves;
+        std::array<Move, 194> moves;
+        std::array<int, 194> moveScores;
 };
