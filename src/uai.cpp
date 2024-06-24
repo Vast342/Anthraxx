@@ -23,7 +23,6 @@
 
 TT tt;
 Engine engine(&tt);
-int threadCount = 1;
 Board board("x5o/7/7/7/7/7/o5x x 0 1");
 
 // resets everything
@@ -67,7 +66,6 @@ void identify() {
     std::cout << "id name Claritaxx " << Version << '\n';
     std::cout << "id author Vast\n";
     std::cout << "option name Hash type spin default 64 min 1 max 2048" << std::endl;
-    std::cout << "option name Threads type spin default 1 min 1 max 2048" << std::endl;
     std::cout << "uaiok" << std::endl;
 }
 
@@ -119,9 +117,6 @@ void setOption(const std::vector<std::string>& bits) {
         int newSizeEntries = newSizeB / entrySizeB;
         //std::cout << log2(newSizeEntries);
         tt.resize(newSizeEntries);
-    } else if(name == "Threads") {
-        threadCount = std::stoi(bits[4]);
-        newGame();
     }
 }
 
