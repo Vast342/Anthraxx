@@ -34,9 +34,9 @@ enum GameStates {
 struct BoardState {
     // x, o
     std::array<uint64_t, 3> bitboards;
+    uint64_t zobristHash;
     uint16_t plyCount;
     uint8_t hundredPlyCounter; 
-    uint64_t zobristHash;
 };
 
 struct Board {

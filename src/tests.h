@@ -70,8 +70,8 @@ inline void runPerftTest(Board board, const int depth) {
     const uint64_t result = perft(board, depth);
     clock_t end = clock();
     std::cout << "Result: " << std::to_string(result) << '\n';
-    std::cout << "Time: " << std::to_string((end-start)/static_cast<double>(1000)) << '\n';
-    std::cout << "NPS: " << std::to_string(result / ((end-start)/static_cast<double>(1000))) << '\n';
+    std::cout << "Time: " << std::to_string((end-start)) << " ms" << '\n';
+    std::cout << "NPS: " << std::to_string(uint64_t(result / ((end-start)/static_cast<double>(1000)))) << '\n';
 }
 
 const std::pair<std::string, std::vector<int>> positions[] = {
@@ -120,13 +120,13 @@ inline void runSplitPerft(Board board, const int depth) {
     uint64_t result = 0;
     for(int i = 0; i < numMoves; i++) {
         board.makeMove(moves[i]);
-        const int currentResult = perft(board, depth - 1);
+        const uint64_t currentResult = perft(board, depth - 1);
         result += currentResult;
         std::cout << moves[i].toLongAlgebraic() << ": " << currentResult << std::endl;
         board.undoMove();
     }
     clock_t end = clock();
     std::cout << "Result: " << std::to_string(result) << '\n';
-    std::cout << "Time: " << std::to_string((end-start)/static_cast<double>(1000)) << '\n';
-    std::cout << "NPS: " << std::to_string(result / ((end-start)/static_cast<double>(1000))) << '\n';
+    std::cout << "Time: " << std::to_string((end-start)) << " ms" << '\n';
+    std::cout << "NPS: " << std::to_string(uint64_t(result / ((end-start)/static_cast<double>(1000)))) << '\n';
 }

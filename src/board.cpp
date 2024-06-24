@@ -151,6 +151,7 @@ Board::Board(std::string fen) {
 void Board::undoMove() {
     currentState = stateHistory.back();
     stateHistory.pop_back();
+    sideToMove = 1 - sideToMove;
 }
 
 void Board::addTile(const int square) {
