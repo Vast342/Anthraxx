@@ -56,8 +56,16 @@ int Engine::negamax(Board &board, int alpha, int beta, int depth, int ply) {
         return 0;
     }
 
+    uint64_t hash = board.getZobristHash();
     Transposition *entry = tt->getEntry(board.getZobristHash());
-    // tt cutoffs and a bunch of other stuff would go here
+
+    if(ply > 0 && entry->zobristKey == hash && entry->depth >= depth && (
+            entry->flag == Exact // exact score
+                || (entry->flag == BetaCutoff && entry->score >= beta) // lower bound, fail high
+                || (entry->flag == FailLow && entry->score <= alpha) // upper bound, fail low
+        )) {
+        return entry->score; 
+    }
 
     std::array<Move, 194> moves;
     std::array<int, 194> moveScores;
@@ -66,6 +74,7 @@ int Engine::negamax(Board &board, int alpha, int beta, int depth, int ply) {
 
     int bestScore = -1000000;
     Move bestMove;
+    int flag = FailLow;
     
     for(int i = 0; i < totalMoves; i++) {
         // Incremental Sorting
@@ -92,11 +101,13 @@ int Engine::negamax(Board &board, int alpha, int beta, int depth, int ply) {
                 alpha = score;
                 bestMove = move;
                 if(ply == 0) rootBestMove = move;
+                flag = Exact;
             }
 
             if(score >= beta) {
                 bestMove = move;
                 if(ply == 0) rootBestMove = move;
+                flag = BetaCutoff;
                 break;
             }
         }
@@ -104,7 +115,7 @@ int Engine::negamax(Board &board, int alpha, int beta, int depth, int ply) {
     }
 
     if(bestMove == Move() && entry->bestMove != Move()) bestMove = entry->bestMove;
-    tt->pushEntry(Transposition(bestMove), board.getZobristHash());
+    tt->pushEntry(Transposition(hash, bestMove, flag, bestScore, depth), hash);
 
     return bestScore;
 }
