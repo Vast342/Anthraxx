@@ -26,6 +26,11 @@ constexpr int lossScore = -10000000;
 
 int nodes = 0;
 
+/*
+    1: TT Move
+    2: Single Moves (10-18)
+    3: Double Moves (0-8)
+*/
 void Engine::scoreMoves(const Board &board, const std::array<Move, 194> &moves, std::array<int, 194> &moveScores, const int totalMoves, const Move ttMove) {
     uint64_t opponents = board.getBitboard(1 - board.getColorToMove());
     for(int i = 0; i < totalMoves; i++) {
@@ -41,7 +46,7 @@ void Engine::scoreMoves(const Board &board, const std::array<Move, 194> &moves, 
 }
 
 int Engine::negamax(Board &board, int alpha, int beta, int depth, int ply) {
-    if(depth <= 0) return board.evaluate();
+    if(depth <= 0) return board.getEval();
     int state = board.getGameState();
     if(state == Win) return winScore - ply;
     if(state == Loss) return lossScore + ply;
@@ -98,6 +103,7 @@ int Engine::negamax(Board &board, int alpha, int beta, int depth, int ply) {
         
     }
 
+    if(bestMove == Move() && entry->bestMove != Move()) bestMove = entry->bestMove;
     tt->pushEntry(Transposition(bestMove), board.getZobristHash());
 
     return bestScore;

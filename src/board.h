@@ -34,7 +34,6 @@ enum GameStates {
 struct BoardState {
     // x, o
     std::array<uint64_t, 3> bitboards;
-    uint8_t sideToMove;
     uint16_t plyCount;
     uint8_t hundredPlyCounter; 
     uint64_t zobristHash;
@@ -47,7 +46,7 @@ struct Board {
         int getMoveCount();
         void makeMove(const Move move);
         void undoMove();
-        int evaluate();
+        int getEval();
         int getColorToMove() const;
         void toString();
         std::string getFen();
@@ -57,6 +56,7 @@ struct Board {
         bool zobristCheck();
     private:
         BoardState currentState;
+        uint8_t sideToMove;
         std::vector<BoardState> stateHistory;
         void addTile(const int square);
         void initializeTile(const int square, const int color);
