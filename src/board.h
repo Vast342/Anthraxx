@@ -42,18 +42,18 @@ struct BoardState {
 struct Board {
     public:
         Board(const std::string fen);
-        int getMoves(std::array<Move, 194> &moves);
-        int getMoveCount();
+        int getMoves(std::array<Move, 194> &moves) const;
+        int getMoveCount() const;
         void makeMove(const Move move);
         void undoMove();
-        int getEval();
+        int getEval() const;
         int getColorToMove() const;
-        void toString();
-        std::string getFen();
+        void toString() const;
+        std::string getFen() const;
         uint64_t getBitboard(int bitboard) const;
         uint64_t getZobristHash() const;
-        int getGameState();
-        bool zobristCheck();
+        int getGameState() const;
+        bool zobristCheck() const;
     private:
         BoardState currentState;
         uint8_t sideToMove;
