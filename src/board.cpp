@@ -20,7 +20,6 @@
 #include "board.h"
 #include "move.h"
 #include "lookups.h"
-#include "eval.h"
 
 // zobrist hashing values 
 std::array<std::array<uint64_t, 2>, 49> zobTable;
@@ -52,7 +51,7 @@ void Board::makeMove(const Move move) {
     currentState.zobristHash ^= zobColorToMove;
 }
 
-int Board::getMoves(std::array<Move, 194> &moves) {
+int Board::getMoves(std::array<Move, 194> &moves) const {
     if(currentState.hundredPlyCounter < 100) {
         uint64_t stmPieces = currentState.bitboards[sideToMove];
         const uint64_t emptyBitboard = ~(currentState.bitboards[X] | currentState.bitboards[O]);
@@ -83,7 +82,7 @@ int Board::getMoves(std::array<Move, 194> &moves) {
     return 0;
 }
 
-int Board::getMoveCount() {
+int Board::getMoveCount() const {
     if(currentState.hundredPlyCounter < 100) {
         uint64_t stmPieces = currentState.bitboards[sideToMove];
         const uint64_t emptyBitboard = ~(currentState.bitboards[X] | currentState.bitboards[O]);
@@ -200,6 +199,12 @@ void Board::flipNeighboringTiles(const int square) {
     
     currentState.bitboards[sideToMove] ^= neighbors;
     currentState.bitboards[1 - sideToMove] ^= neighbors;
+
+    while(neighbors != 0) {
+        int index = popLSB(neighbors);
+        currentState.zobristHash ^= zobTable[index][sideToMove];
+        currentState.zobristHash ^= zobTable[index][1 - sideToMove];
+    }
 }
 
 int Board::tileAtIndex(const int square) const {
@@ -213,15 +218,15 @@ int Board::tileAtIndex(const int square) const {
     return None;
 }
 
-int Board::getEval() {
-    return evaluate(sideToMove, currentState.bitboards);
+int Board::getEval() const {
+    return 100 * (__builtin_popcountll(currentState.bitboards[sideToMove]) - __builtin_popcountll(currentState.bitboards[1 - sideToMove]));
 };
 
 int Board::getColorToMove() const {
     return sideToMove;
 }
 
-void Board::toString() {
+void Board::toString() const {
     for(int rank = 6; rank >= 0; rank--) {
         for(int file = 0; file < 7; file++) {
             const int tile = tileAtIndex(rank * 7 + file);
@@ -246,7 +251,7 @@ void Board::toString() {
     std::cout << "Evaluation: " << std::to_string(getEval()) << '\n';
 }
 
-std::string Board::getFen() {
+std::string Board::getFen() const {
     // code originally from the c# version of clarity, then c++ version of clarity, and now here!
     std::string fen = "";
     for(int rank = 6; rank >= 0; rank--) {
@@ -308,27 +313,23 @@ uint64_t Board::getZobristHash() const {
     return currentState.zobristHash;
 }
 
-bool Board::zobristCheck() {
+bool Board::zobristCheck() const {
     uint64_t hash = 0;
     for(int i = 0; i < 49; i++) {
         int piece = tileAtIndex(i);
-        if(piece == X) {
-            hash ^= zobTable[i][X];
-        } else if(piece == O) {
-            hash ^= zobTable[i][O];
-        }
+        if(piece < Blocked) hash ^= zobTable[i][piece];
     }
     if(sideToMove == X) hash ^= zobColorToMove;
 
-
-    return hash = currentState.zobristHash;
+    return hash == currentState.zobristHash;
 }
 
-int Board::getGameState() {
-    int selfOccupied = __builtin_popcountll(currentState.bitboards[sideToMove]);
-    int opponentOccupied = __builtin_popcountll(currentState.bitboards[1 - sideToMove]);
+int Board::getGameState() const {
+    const int selfOccupied = __builtin_popcountll(currentState.bitboards[sideToMove]);
+    const int opponentOccupied = __builtin_popcountll(currentState.bitboards[1 - sideToMove]);
+    const int blockerCount = __builtin_popcountll(currentState.bitboards[Blocked]);
 
-    if(selfOccupied + opponentOccupied == 49) {
+    if(selfOccupied + opponentOccupied + blockerCount == 49) {
         if(selfOccupied > opponentOccupied) {
             return Win;
         } else if(selfOccupied < opponentOccupied) {
@@ -342,8 +343,6 @@ int Board::getGameState() {
         return Win;
     } else if(currentState.hundredPlyCounter >= 100) {
         return Draw;
-    } else {
-        return StillGoing;
     }
     return StillGoing;
 }
