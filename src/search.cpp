@@ -126,14 +126,9 @@ void Engine::outputInfo(int score, int depth, int elapsedTime) {
     std::cout << "info depth " << std::to_string(depth) << " nodes " << std::to_string(nodes) << " time " << std::to_string(elapsedTime) << " nps " << std::to_string(int(double(nodes) / (elapsedTime == 0 ? 1 : elapsedTime) * 1000)) << scoreString << " pv " << rootBestMove.toLongAlgebraic() << std::endl;
 }
 
-Move Engine::think(Board board, const int softTimeLimit, const int hardTimeLimit, bool info) {
-    hardLimit = hardTimeLimit;
-    nodes = 0;
-    timesUp = false;
-
-    begin = std::chrono::steady_clock::now();
-
-    for(int i = 1; i < 100; i++) {
+// I should have done this sooner
+void Engine::iterativeDeepen(Board board, const int softTimeLimit, const int depth, bool info) {
+    for(int i = 1; i <= depth; i++) {
         const Move previousBest = rootBestMove;
 
         const int score = negamax(board, lossScore, winScore, i, 0);
@@ -146,30 +141,16 @@ Move Engine::think(Board board, const int softTimeLimit, const int hardTimeLimit
         if(info) outputInfo(score, i, elapsedTime);
         if(elapsedTime > softTimeLimit) break;
     }
-    
-    if(info) std::cout << "bestmove " << rootBestMove.toLongAlgebraic() << std::endl;
-    return rootBestMove;
 }
 
-Move Engine::fixedDepthSearch(Board board, const int depth, const bool info) {
-    hardLimit = 1215752192;
+Move Engine::think(Board board, const int softTimeLimit, const int hardTimeLimit, const int depth, bool info) {
+    hardLimit = hardTimeLimit;
     nodes = 0;
     timesUp = false;
 
     begin = std::chrono::steady_clock::now();
 
-    for(int i = 1; i <= depth; i++) {
-        const Move previousBest = rootBestMove;
-
-        const int score = negamax(board, lossScore, winScore, i, 0);
-        
-        if(timesUp) {
-            rootBestMove = previousBest;
-            break;
-        }
-        const auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - begin).count();
-        if(info) outputInfo(score, i, elapsedTime);
-    }
+    iterativeDeepen(board, softTimeLimit, depth, info);
     
     if(info) std::cout << "bestmove " << rootBestMove.toLongAlgebraic() << std::endl;
     return rootBestMove;
@@ -182,8 +163,7 @@ int Engine::benchSearch(Board board, const int depth) {
 
     begin = std::chrono::steady_clock::now();
 
-    for(int i = 1; i <= depth; i++) {
-        negamax(board, lossScore, winScore, i, 0);
-    }
+    iterativeDeepen(board, 1215752192, depth, false);
+    
     return nodes;
 }

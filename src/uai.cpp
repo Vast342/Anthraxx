@@ -93,13 +93,13 @@ void go(const std::vector<std::string> &bits) {
         }
     }
     if(depth != 0) {
-        engine.fixedDepthSearch(board, depth, true);
+        engine.think(board, bigNumber, bigNumber, depth, true);
     } else if(time != 0) {
         // go wtime x btime x
         // the formulas here are former formulas from Stormphrax, so this means that they are adapted to Chess timing, and may not be the best for Ataxx
         const int softBound = 0.6 * (time / movestogo + inc * 3.0 / 4.0);
         const int hardBound = time / 2;
-        engine.think(board, softBound, hardBound, true);
+        engine.think(board, softBound, hardBound, 100, true);
     } else {
         std::cout << "Invalid arguments" << std::endl;
     }

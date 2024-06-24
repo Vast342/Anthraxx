@@ -33,6 +33,8 @@
 #include <fstream>
 #include <memory>
 
+constexpr int bigNumber = 1215752192;
+
 // finds the least significant bit in the uint64_t, gets rid of it, and returns its index
 inline int popLSB(uint64_t &bitboard) {
     int lsb = std::countr_zero(bitboard);
