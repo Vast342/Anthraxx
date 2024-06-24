@@ -70,11 +70,11 @@ inline void runPerftTest(Board board, const int depth) {
     const uint64_t result = perft(board, depth);
     clock_t end = clock();
     std::cout << "Result: " << std::to_string(result) << '\n';
-    std::cout << "Time: " << std::to_string((end-start)/static_cast<double>(1000)) << '\n';
-    std::cout << "NPS: " << std::to_string(result / ((end-start)/static_cast<double>(1000))) << '\n';
+    std::cout << "Time: " << std::to_string((end-start)) << " ms" << '\n';
+    std::cout << "NPS: " << std::to_string(uint64_t(result / ((end-start)/static_cast<double>(1000)))) << '\n';
 }
 
-const std::pair<std::string, std::vector<int>> positions[] = {
+const std::pair<std::string, std::vector<int>> perftSuite[] = {
     {"7/7/7/7/7/7/7 x 0 1", {1, 0, 0, 0, 0}},
     {"7/7/7/7/7/7/7 o 0 1", {1, 0, 0, 0, 0}},
     {"x5o/7/7/7/7/7/o5x x 0 1", {1, 16, 256, 6460, 155888, 4752668}},
@@ -97,9 +97,32 @@ const std::pair<std::string, std::vector<int>> positions[] = {
     {"7/7/7/7/-------/-------/x5o o 0 1", {1, 2, 4, 13, 30, 73, 174}},
 };
 
+const std::array<std::string, 20> benchPositions = {
+    "x5o/7/7/2o2o1/1oo4/3o3/3x3 x 0 5",
+    "4x1o/7/2-1-2/7/2-1-o1/2o4/6x x 7 5",
+    "3o3/4oo1/2x1o2/7/7/7/o5x x 2 5",
+    "6o/1xx4/5x1/7/o6/oo5/2o3x x 0 5",
+    "5oo/x6/2-1-2/o1x4/2-1-2/o3x2/o6 x 2 5",
+    "2o2o1/3o3/7/7/3x3/7/o5x x 2 5",
+    "x5o/7/o6/3o3/4o2/7/3x3 x 2 5",
+    "2xx3/7/2-1-1o/7/o1-1-2/3oo2/7 x 2 5",
+    "2x4/7/4o2/2o4/2o4/1o2x2/7 x 0 5",
+    "7/7/2-1-1o/oo5/1o-1-2/3xx2/7 x 1 5",
+    "3o2o/7/5o1/1x4o/x6/7/o3x2 x 1 5",
+    "1x4o/1x5/1x-1-2/7/2-1-1o/5oo/7 x 1 5",
+    "2x2o1/7/1x-1-2/7/2-1-2/4o2/4o2 x 3 5",
+    "x6/7/2-1-oo/4o2/2-1-2/2o4/5x1 x 0 5",
+    "4o2/3o3/2-o-2/2xx3/2-1-2/2o4/2o3x x 0 5",
+    "7/7/2x4/7/1o2o2/7/o6 x 8 5",
+    "6o/7/3o3/2o4/3o3/5x1/o3x1x x 1 5",
+    "7/5oo/4o2/7/4x2/1o5/o1o4 x 0 5",
+    "7/2x1o2/1x5/5o1/1o3o1/o6/7 x 1 5",
+    "6o/4o2/1o-1-2/7/2-1-2/3xx2/7 x 4 5"
+};
+
 inline void runPerftSuite() {
     int j = 0;
-    for(const auto& [fen, nodes] : positions) {
+    for(const auto& [fen, nodes] : perftSuite) {
         Board board(fen);
         for(unsigned int i = 0; i < nodes.size(); ++i) {
             j++;
@@ -120,13 +143,13 @@ inline void runSplitPerft(Board board, const int depth) {
     uint64_t result = 0;
     for(int i = 0; i < numMoves; i++) {
         board.makeMove(moves[i]);
-        const int currentResult = perft(board, depth - 1);
+        const uint64_t currentResult = perft(board, depth - 1);
         result += currentResult;
         std::cout << moves[i].toLongAlgebraic() << ": " << currentResult << std::endl;
         board.undoMove();
     }
     clock_t end = clock();
     std::cout << "Result: " << std::to_string(result) << '\n';
-    std::cout << "Time: " << std::to_string((end-start)/static_cast<double>(1000)) << '\n';
-    std::cout << "NPS: " << std::to_string(result / ((end-start)/static_cast<double>(1000))) << '\n';
+    std::cout << "Time: " << std::to_string((end-start)) << " ms" << '\n';
+    std::cout << "NPS: " << std::to_string(uint64_t(result / ((end-start)/static_cast<double>(1000)))) << '\n';
 }

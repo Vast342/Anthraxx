@@ -20,6 +20,7 @@
 #include "board.h"
 #include "move.h"
 #include "lookups.h"
+#include "eval.h"
 
 // zobrist hashing values 
 std::array<std::array<uint64_t, 2>, 49> zobTable;
@@ -47,13 +48,13 @@ void Board::makeMove(const Move move) {
             flipNeighboringTiles(endSquare);
             break;
     }
-    currentState.sideToMove = 1 - currentState.sideToMove;
+    sideToMove = 1 - sideToMove;
     currentState.zobristHash ^= zobColorToMove;
 }
 
 int Board::getMoves(std::array<Move, 194> &moves) {
     if(currentState.hundredPlyCounter < 100) {
-        uint64_t stmPieces = currentState.bitboards[currentState.sideToMove];
+        uint64_t stmPieces = currentState.bitboards[sideToMove];
         const uint64_t emptyBitboard = ~(currentState.bitboards[X] | currentState.bitboards[O]);
         uint64_t singleMoves = expandBitboard(stmPieces) & emptyBitboard;
         singleMoves ^= (currentState.bitboards[Blocked] & singleMoves);
@@ -73,7 +74,7 @@ int Board::getMoves(std::array<Move, 194> &moves) {
                 totalMoves++;   
             }
         }
-        if(totalMoves == 0 && __builtin_popcountll(currentState.bitboards[currentState.sideToMove]) != 0) {
+        if(totalMoves == 0 && __builtin_popcountll(currentState.bitboards[sideToMove]) != 0) {
             moves[totalMoves] = Move(0,0,Passing);
             totalMoves++;
         }
@@ -84,7 +85,7 @@ int Board::getMoves(std::array<Move, 194> &moves) {
 
 int Board::getMoveCount() {
     if(currentState.hundredPlyCounter < 100) {
-        uint64_t stmPieces = currentState.bitboards[currentState.sideToMove];
+        uint64_t stmPieces = currentState.bitboards[sideToMove];
         const uint64_t emptyBitboard = ~(currentState.bitboards[X] | currentState.bitboards[O]);
         uint64_t singleMoves = expandBitboard(stmPieces) & emptyBitboard;
         singleMoves ^= (currentState.bitboards[Blocked] & singleMoves);
@@ -96,7 +97,7 @@ int Board::getMoveCount() {
             twoAways ^= (currentState.bitboards[Blocked] & twoAways);
             totalMoves += __builtin_popcountll(twoAways);
         }
-        if(totalMoves == 0 && __builtin_popcountll(currentState.bitboards[currentState.sideToMove]) != 0) {
+        if(totalMoves == 0 && __builtin_popcountll(currentState.bitboards[sideToMove]) != 0) {
             totalMoves++;
         }
         return totalMoves;
@@ -139,25 +140,26 @@ Board::Board(std::string fen) {
         }
     }
     // convert color to move into 0 or 1, segment 2
-    currentState.sideToMove = (segments[1] == "o" ? 1 : 0);
-    if(currentState.sideToMove == X) currentState.zobristHash ^= zobColorToMove;
+    sideToMove = (segments[1] == "o" ? 1 : 0);
+    if(sideToMove == X) currentState.zobristHash ^= zobColorToMove;
     // 50 move counter, segment 3
     currentState.hundredPlyCounter = std::stoi(segments[2]);
     // ply count, segment 4
-    currentState.plyCount = std::stoi(segments[3]) * 2 - currentState.sideToMove;
+    currentState.plyCount = std::stoi(segments[3]) * 2 - sideToMove;
 }
 
 void Board::undoMove() {
     currentState = stateHistory.back();
     stateHistory.pop_back();
+    sideToMove = 1 - sideToMove;
 }
 
 void Board::addTile(const int square) {
     assert(square < 49);
     assert(tileAtIndex(square) == None);
     const uint64_t squareAsBitboard = 1ULL << square;
-    currentState.bitboards[currentState.sideToMove] ^= squareAsBitboard;
-    currentState.zobristHash ^= zobTable[square][currentState.sideToMove];
+    currentState.bitboards[sideToMove] ^= squareAsBitboard;
+    currentState.zobristHash ^= zobTable[square][sideToMove];
 }
 
 void Board::initializeTile(const int square, const int color) {
@@ -170,10 +172,10 @@ void Board::initializeTile(const int square, const int color) {
 
 void Board::removeTile(const int square) {
     assert(square < 49);
-    assert(tileAtIndex(square) == currentState.sideToMove);
+    assert(tileAtIndex(square) == sideToMove);
     const uint64_t squareAsBitboard = 1ULL << square;
-    currentState.bitboards[currentState.sideToMove] ^= squareAsBitboard;
-    currentState.zobristHash ^= zobTable[square][currentState.sideToMove];
+    currentState.bitboards[sideToMove] ^= squareAsBitboard;
+    currentState.zobristHash ^= zobTable[square][sideToMove];
 }
 
 void Board::blockTile(const int square) {
@@ -184,20 +186,20 @@ void Board::blockTile(const int square) {
 
 void Board::flipTile(const int square) {
     assert(square < 49);
-    assert(tileAtIndex(square) != currentState.sideToMove);
+    assert(tileAtIndex(square) != sideToMove);
     const uint64_t squareAsBitboard = 1ULL << square;
-    currentState.bitboards[currentState.sideToMove] ^= squareAsBitboard;
-    currentState.bitboards[1 - currentState.sideToMove] ^= squareAsBitboard;
-    currentState.zobristHash ^= zobTable[square][currentState.sideToMove];
-    currentState.zobristHash ^= zobTable[square][1 - currentState.sideToMove];
+    currentState.bitboards[sideToMove] ^= squareAsBitboard;
+    currentState.bitboards[1 - sideToMove] ^= squareAsBitboard;
+    currentState.zobristHash ^= zobTable[square][sideToMove];
+    currentState.zobristHash ^= zobTable[square][1 - sideToMove];
 }
 
 void Board::flipNeighboringTiles(const int square) {
     assert(square < 49);
-    uint64_t neighbors = (currentState.bitboards[1 - currentState.sideToMove] & neighboringTiles[square]);
+    uint64_t neighbors = (currentState.bitboards[1 - sideToMove] & neighboringTiles[square]);
     
-    currentState.bitboards[currentState.sideToMove] ^= neighbors;
-    currentState.bitboards[1 - currentState.sideToMove] ^= neighbors;
+    currentState.bitboards[sideToMove] ^= neighbors;
+    currentState.bitboards[1 - sideToMove] ^= neighbors;
 }
 
 int Board::tileAtIndex(const int square) const {
@@ -211,12 +213,12 @@ int Board::tileAtIndex(const int square) const {
     return None;
 }
 
-int Board::evaluate() {
-    return __builtin_popcountll(currentState.bitboards[currentState.sideToMove]) - __builtin_popcountll(currentState.bitboards[1 - currentState.sideToMove]);
+int Board::getEval() {
+    return evaluate(sideToMove, currentState.bitboards);
 };
 
 int Board::getColorToMove() const {
-    return currentState.sideToMove;
+    return sideToMove;
 }
 
 void Board::toString() {
@@ -240,8 +242,8 @@ void Board::toString() {
         std::cout << '\n';
     }
     std::cout << "Ply count: " << std::to_string(currentState.plyCount) << '\n';
-    std::cout << "Color to move: " << (currentState.sideToMove == 1 ? "O" : "X") << '\n';
-    std::cout << "Evaluation: " << std::to_string(evaluate()) << '\n';
+    std::cout << "Color to move: " << (sideToMove == 1 ? "O" : "X") << '\n';
+    std::cout << "Evaluation: " << std::to_string(getEval()) << '\n';
 }
 
 std::string Board::getFen() {
@@ -273,13 +275,13 @@ std::string Board::getFen() {
 
     // color to move
     fen += ' ';
-    fen += (currentState.sideToMove == 0 ? 'x' : 'o');
+    fen += (sideToMove == 0 ? 'x' : 'o');
     // 50 move counter
     fen += ' ';
     fen += std::to_string(currentState.hundredPlyCounter / 2);
     // ply count
     fen += ' ';
-    fen += std::to_string(currentState.plyCount / 2 + currentState.sideToMove);
+    fen += std::to_string(currentState.plyCount / 2 + sideToMove);
     return fen;
 }
 
@@ -316,15 +318,15 @@ bool Board::zobristCheck() {
             hash ^= zobTable[i][O];
         }
     }
-    if(currentState.sideToMove == X) hash ^= zobColorToMove;
+    if(sideToMove == X) hash ^= zobColorToMove;
 
 
     return hash = currentState.zobristHash;
 }
 
 int Board::getGameState() {
-    int selfOccupied = __builtin_popcountll(currentState.bitboards[currentState.sideToMove]);
-    int opponentOccupied = __builtin_popcountll(currentState.bitboards[1 - currentState.sideToMove]);
+    int selfOccupied = __builtin_popcountll(currentState.bitboards[sideToMove]);
+    int opponentOccupied = __builtin_popcountll(currentState.bitboards[1 - sideToMove]);
 
     if(selfOccupied + opponentOccupied == 49) {
         if(selfOccupied > opponentOccupied) {
