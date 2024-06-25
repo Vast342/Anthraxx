@@ -47,7 +47,6 @@ Move MovePicker::next(const Board &board, const Move ttMove) {
         scoreMoves(board, ttMove);
         phase++;
     }
-    if(movesGotten == totalMoves) return Move();
     // Incremental Sorting
     for(int j = movesGotten + 1; j < totalMoves; j++) {
         if(moveScores[j] > moveScores[movesGotten]) {
@@ -57,4 +56,8 @@ Move MovePicker::next(const Board &board, const Move ttMove) {
     }
     movesGotten++;
     return moves[movesGotten - 1];
+}
+
+bool MovePicker::hasNext() {
+    return !(movesGotten == totalMoves) || phase == ReadyToInit;
 }

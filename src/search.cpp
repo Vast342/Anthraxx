@@ -61,10 +61,8 @@ int Engine::negamax(Board &board, int alpha, int beta, int depth, int ply) {
     int flag = FailLow;
     
     // move loop
-    while(true) {
+    while(picker.hasNext()) {
         Move move = picker.next(board, entry->bestMove);
-        
-        if(move == Move()) break;
 
         // make the move and call the next node        
         board.makeMove(move);

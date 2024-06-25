@@ -33,6 +33,7 @@ struct MovePicker {
             phase = ReadyToInit;
         }
         Move next(const Board &board, const Move ttMove);
+        bool hasNext();
     private: 
         void scoreMoves(const Board &board, const Move ttMove);
         int movesGotten;
