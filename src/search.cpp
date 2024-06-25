@@ -136,11 +136,17 @@ int Engine::negamax(Board &board, int alpha, int beta, int depth, int ply) {
 
 // ouputs info for the user to see
 void Engine::outputInfo(int score, int depth, int elapsedTime) {
-    std::string scoreString = " score cp ";
-    scoreString += std::to_string(score);
+    std::string scoreString = " score ";
+    if(std::abs(score) > winScore - 256) {
+        int colorMultiplier = score > 0 ? 1 : -1;
+        scoreString += "mate ";
+        scoreString += std::to_string((abs(abs(score) + lossScore) / 2) * colorMultiplier + 1);
+    } else {
+        scoreString += "cp ";
+        scoreString += std::to_string(score);
+    }
     std::cout << "info depth " << std::to_string(depth) << " nodes " << std::to_string(nodes) << " time " << std::to_string(elapsedTime) << " nps " << std::to_string(int(double(nodes) / (elapsedTime == 0 ? 1 : elapsedTime) * 1000)) << scoreString << " pv " << rootBestMove.toLongAlgebraic() << std::endl;
 }
-
 // searches to higher depths until it's end criteria is met (soon to have aspiration windows)
 void Engine::iterativeDeepen(Board board, const int softTimeLimit, const int depth, bool info) {
     for(int i = 1; i <= depth; i++) {
