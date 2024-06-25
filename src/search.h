@@ -31,11 +31,14 @@ struct Engine {
         }
         Move think(Board board, const int softTimeLimit, const int hardTimeLimit, const int depth, bool info);
         int benchSearch(Board board, const int depth);
+        void newGame();
     private:
         int hardLimit;
         Move rootBestMove;
         TT* tt;
         std::chrono::steady_clock::time_point begin;
+        std::array<std::array<std::array<int, 49>, 49>, 2> historyTable; 
+        void updateHistory(int colorToMove, int from, int to, int bonus);
         void iterativeDeepen(Board board, const int softTimeLimit, const int depth, bool info);
         void scoreMoves(const Board &board, const std::array<Move, 194> &moves, std::array<int, 194> &moveScores, const int totalMoves, const Move ttMove);
         int negamax(Board &board, int alpha, int beta, int depth, int ply);

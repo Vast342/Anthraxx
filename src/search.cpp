@@ -24,7 +24,13 @@ bool timesUp = false;
 constexpr int winScore = 10000000;
 constexpr int lossScore = -10000000;
 
+constexpr int historyCap = 16384;
+
 int nodes = 0;
+
+void Engine::newGame() {
+    std::memset(historyTable.data(), 0, sizeof(historyTable));
+}
 
 /*
     Orders the moves like this:
@@ -43,10 +49,16 @@ void Engine::scoreMoves(const Board &board, const std::array<Move, 194> &moves, 
             // single moves add a tile to the board so are in most cases good (though maybe less in endgames where you want control)
             // captures are also better the more they can capture (again, in most cases)
             uint64_t neighbors = (opponents & neighboringTiles[move.getEndSquare()]);
-            moveScores[i] = __builtin_popcountll(neighbors);
-            moveScores[i] += (move.getFlag() == Single) * 10;
+            moveScores[i] = __builtin_popcountll(neighbors) * 2048;
+            moveScores[i] += (move.getFlag() == Single) * (historyCap * 2);
+            moveScores[i] += historyTable[board.getColorToMove()][move.getStartSquare()][move.getEndSquare()];
         }
     }
+}
+
+void Engine::updateHistory(int colorToMove, int from, int to, int bonus) {
+    int thingToAdd = bonus - historyTable[colorToMove][from][to] * std::abs(bonus) / historyCap;
+    historyTable[colorToMove][from][to] += thingToAdd;
 }
 
 int Engine::negamax(Board &board, int alpha, int beta, int depth, int ply) {
@@ -121,6 +133,8 @@ int Engine::negamax(Board &board, int alpha, int beta, int depth, int ply) {
                 bestMove = move;
                 if(ply == 0) rootBestMove = move;
                 flag = BetaCutoff;
+                int bonus = 50 * depth * depth;
+                updateHistory(board.getColorToMove(), move.getStartSquare(), move.getEndSquare(), bonus);
                 break;
             }
         }
